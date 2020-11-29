@@ -1,5 +1,7 @@
 import glob, os, ntpath
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import label as region_map
 
 def extract_name(path):
     '''
@@ -36,15 +38,27 @@ def find_otsu(img):
     Output:
     :t_otsu: estimated threshold value according to Otsu's method
     '''
-    hist, bins = np.histogram(img.ravel(), np.arange(img.min(),img.max()+2,1))
-    sigma_max = 0.0
-    for t in range(1,len(hist)-1):
-        w0 = np.nansum(hist[0:t])
-        w1 = np.nansum(hist[t:-1])
-        mu0 = np.nan_to_num(np.sum(hist[0:t]*bins[0:t]) / w0)
-        mu1 = np.nan_to_num(np.sum(hist[t:-1]*bins[t:-2]) / w1)
-        sigma = w0*w1*(mu0-mu1)**2
-        if sigma > sigma_max:
-            sigma_max = sigma
-            t_otsu = t
-    return t_otsu
+    hist, bins = np.histogram(img.ravel(), np.arange(img.min(),img.max()+2,1),density=True)
+    sigma = np.zeros_like(hist)
+    for t in range(len(hist)):
+        w0 = np.sum(hist[0:t])
+        w1 = np.sum(hist[t:-1])
+        mu0 = hist[:t]@bins[:t] / w0
+        mu1 = hist[t:]@bins[t:-1] / w1
+        sigma[t] = w0*w1*(mu0-mu1)**2
+    return bins[np.argmax(np.nan_to_num(sigma))]
+
+def remove_background(img, th=1000):
+    '''
+    A method to clear the background from the mask
+    Input:
+    :img: Grayscale image of the holes mask as numpy array
+    Output:
+    :img: the mask without to background
+    '''
+    regions, regions_num = region_map(img)
+    for i in range(regions_num):
+        if np.sum(regions==i)>= th:
+            img[regions==i] = 0
+    return img
+
