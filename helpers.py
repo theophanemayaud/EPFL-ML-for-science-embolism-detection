@@ -62,3 +62,23 @@ def remove_background(img, th=1000):
             img[regions==i] = 0
     return img
 
+def extend_mirror(img, out_size):
+    img_size = img.shape
+    out = np.zeros(out_size)
+    v_edge_u = (out_size[0]-img_size[0]) // 2
+    v_edge_d = -(out_size[0]-img_size[0]-v_edge_u)
+    h_edge_l = (out_size[1]-img_size[1]) // 2
+    h_edge_r = -(out_size[1]-img_size[1]-h_edge_l)
+    # centre
+    out[v_edge_u:v_edge_d,h_edge_l:h_edge_r] = img
+    # sides
+    out[:v_edge_u,h_edge_l:h_edge_r] = np.flipud(img[:v_edge_u,:]) # top
+    out[v_edge_d:,h_edge_l:h_edge_r] = np.flipud(img[v_edge_d:,:]) # bottom
+    out[v_edge_u:v_edge_d,:h_edge_l] = np.fliplr(img[:,:h_edge_l]) # left
+    out[v_edge_u:v_edge_d,h_edge_r:] = np.fliplr(img[:,h_edge_r:]) # right
+    # corners
+    out[:v_edge_u,:h_edge_l] = np.fliplr(out[:v_edge_u,h_edge_l:h_edge_l*2]) # top-left
+    out[:v_edge_u,h_edge_r:] = np.fliplr(out[:v_edge_u,2*h_edge_r:h_edge_r]) # top-right
+    out[v_edge_d:,:h_edge_l] = np.fliplr(out[v_edge_d:,h_edge_l:h_edge_l*2]) # bottom-left
+    out[v_edge_d:,h_edge_r:] = np.fliplr(out[v_edge_d:,2*h_edge_r:h_edge_r]) # bottom-right
+    return out
