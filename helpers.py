@@ -63,6 +63,16 @@ def remove_background(img, th=1000):
     return img
 
 def extend_mirror(img, out_size):
+    '''
+    A method to extend an image to certain resolution by mirrorring the edges
+    Input:
+    :img: image as numpy array
+    :out_size: a tuple of the desired output resolution
+    Output:
+    :out: the extended image
+    '''
+    if np.any(img.shape>out_size):
+        raise Exception('Error: at least on of out_size axes is smaller than the image shape')
     img_size = img.shape
     out = np.zeros(out_size)
     v_edge_u = (out_size[0]-img_size[0]) // 2
