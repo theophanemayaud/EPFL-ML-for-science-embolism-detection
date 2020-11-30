@@ -71,22 +71,25 @@ def extend_mirror(img, out_size):
     Output:
     :out: the extended image
     '''
+    # input error exceptions
     if np.any(img.shape>out_size):
         raise Exception('Error: at least on of out_size axes is smaller than the image shape')
-    img_size = img.shape
+    if np.any(3*img.shape>out_size):
+        raise Exception('Error: at least on of out_size axes is at least 3 times larger than the image shape')
+    # output parameters
     out = np.zeros(out_size)
-    v_edge_u = (out_size[0]-img_size[0]) // 2
-    v_edge_d = -(out_size[0]-img_size[0]-v_edge_u)
-    h_edge_l = (out_size[1]-img_size[1]) // 2
-    h_edge_r = -(out_size[1]-img_size[1]-h_edge_l)
-    # centre
+    v_edge_u = (out_size[0]-img.shape[0]) // 2
+    v_edge_d = -(out_size[0]-img.shape[0]-v_edge_u)
+    h_edge_l = (out_size[1]-img.shape[1]) // 2
+    h_edge_r = -(out_size[1]-img.shape[1]-h_edge_l)
+    # output centre
     out[v_edge_u:v_edge_d,h_edge_l:h_edge_r] = img
-    # sides
+    # output sides
     out[:v_edge_u,h_edge_l:h_edge_r] = np.flipud(img[:v_edge_u,:]) # top
     out[v_edge_d:,h_edge_l:h_edge_r] = np.flipud(img[v_edge_d:,:]) # bottom
     out[v_edge_u:v_edge_d,:h_edge_l] = np.fliplr(img[:,:h_edge_l]) # left
     out[v_edge_u:v_edge_d,h_edge_r:] = np.fliplr(img[:,h_edge_r:]) # right
-    # corners
+    # output corners
     out[:v_edge_u,:h_edge_l] = np.fliplr(out[:v_edge_u,h_edge_l:h_edge_l*2]) # top-left
     out[:v_edge_u,h_edge_r:] = np.fliplr(out[:v_edge_u,2*h_edge_r:h_edge_r]) # top-right
     out[v_edge_d:,:h_edge_l] = np.fliplr(out[v_edge_d:,h_edge_l:h_edge_l*2]) # bottom-left
