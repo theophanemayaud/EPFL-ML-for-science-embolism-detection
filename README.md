@@ -55,3 +55,8 @@ In this folder you will find two main files :
    
 - th_analysedimages (folder)
 > Contains provided tif images that were analysed and for which we have label data. Images are re-named to the standardized Session[x]\_[flushed/living]\_[plant name]_[image number.tif_
+
+- th_sampledata (folder)
+> Contains some example tif and csv provided files. These are used in th_ROI-EMB_toLabelLayers.ipynb th_matchFilePathToAnalysedPictures.ipynb and th_copyAllValidPicturesToLocal.ipynb to get a hold of the whole dataset and implement the methods for all of them.
+
+
