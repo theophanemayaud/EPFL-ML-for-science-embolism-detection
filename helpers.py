@@ -95,3 +95,52 @@ def extend_mirror(img, out_size):
     out[v_edge_d:,:h_edge_l] = np.fliplr(out[v_edge_d:,h_edge_l:h_edge_l*2]) # bottom-left
     out[v_edge_d:,h_edge_r:] = np.fliplr(out[v_edge_d:,2*h_edge_r:h_edge_r]) # bottom-right
     return out
+
+def mask_to_png(mask, color=[255,0,0]):
+    '''convert nd array with 0 and 1 values to png image, transparent for 0, color of choice for 1
+    
+    input
+    -----
+    mask : nd array of 0 and 1 of uint8 (max 255)
+    color : optionnal, array of red green blue colors of uint8 (max 255) values [r, g, b]
+    
+    output
+    ------
+    png image with transparent background and color at positions
+    '''
+    # NB opencv works with RGBA, so 4 dimensions, with A being alpha, the transparency (0=transparent)
+    npmask = np.array(mask, dtype=np.uint8)
+    npmaskr = npmask.copy()
+    npmaskr[npmask!=0] = color[0] 
+    npmaskg = npmask.copy()
+    npmaskg[npmask!=0] = color[1]
+    npmaskb = npmask.copy()
+    npmaskb[npmask!=0] = color[2]
+    npmaska = npmask.copy()
+    npmaska[npmask!=0] = 255
+    pngimage = np.stack([npmaskr,npmaskg, npmaskb, npmaska], axis=-1)
+    
+    return pngimage
+
+def png_to_mask(png):
+    '''convert nd array with 0 and 1 values to png image, transparent for 0, color of choice for 1
+    
+    input
+    -----
+    png : 4 or 3 (without alpha) dimensionnal nd array of 0 and color values (or transparency) of uint8 (max 255)
+    
+    output
+    ------
+    nd numpy array with 0 for background and 1 for color pixels
+    '''
+    # NB opencv works with RGBA, so 4 dimensions, with A being alpha, the transparency (0=transparent)
+    pngarray = np.array(png)
+#     print(pngarray[:,:,0])
+    mask = pngarray[:,:,0]
+    mask[pngarray[:,:,0]!=0]=1
+    mask[pngarray[:,:,1]!=0]=1
+    mask[pngarray[:,:,2]!=0]=1
+    if pngarray.shape[2]==4:
+        mask[pngarray[:,:,3]!=0]=1
+        
+    return mask
