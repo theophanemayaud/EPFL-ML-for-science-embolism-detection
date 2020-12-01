@@ -73,9 +73,9 @@ def extend_mirror(img, out_size):
     :out: the extended image
     '''
     # input error exceptions
-    if np.any(img.shape>out_size):
+    if np.any(img.shape>tuple(out_size)):
         raise Exception('Error: at least on of out_size axes is smaller than the image shape')
-    if np.any(3*img.shape>out_size):
+    if np.any(3*img.shape>tuple(out_size)):
         raise Exception('Error: at least on of out_size axes is at least 3 times larger than the image shape')
     # output parameters
     out = np.zeros(out_size)
