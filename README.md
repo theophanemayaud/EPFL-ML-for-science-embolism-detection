@@ -2,7 +2,7 @@
 
 ## Files for final submission
 
-In this folder you will find two principal files :
+In this folder you will find two main files :
 - xx.py
 >  descriptions ...
 
@@ -55,11 +55,3 @@ In this folder you will find two principal files :
    
 - th_analysedimages (folder)
 > Contains provided tif images that were analysed and for which we have label data. Images are re-named to the standardized Session[x]\_[flushed/living]\_[plant name]_[image number.tif_
-
-
-
-
-
-
-
-
