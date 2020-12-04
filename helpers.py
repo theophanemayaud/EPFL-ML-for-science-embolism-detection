@@ -25,10 +25,10 @@ def find_best_sigma(img, range=100):
     Output:
     :sigma: estimated sigma of gaussian noise
     '''
-    sigma_1 = np.std(img[0:range,0:range])
-    sigma_2 = np.std(img[0:range,-range:-1])
-    sigma_3 = np.std(img[-range:-1,-range:-1])
-    sigma_4 = np.std(img[-range:-1,0:range])
+    sigma_1 = np.std(img[:range,:range])
+    sigma_2 = np.std(img[:range,-range:])
+    sigma_3 = np.std(img[-range:,-range:])
+    sigma_4 = np.std(img[-range:,:range])
     return np.min([sigma_1,sigma_2,sigma_3,sigma_4])
 
 def find_otsu(img):
