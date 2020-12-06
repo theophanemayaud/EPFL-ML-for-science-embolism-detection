@@ -201,3 +201,32 @@ def png_to_mask(png):
         mask[pngarray[:,:,3]!=0]=1
         
     return mask
+
+def segment_dataset(imgs, labels, in_size=572, out_size=388):
+    '''
+    A method to create a dataset ready to be used by a U-NET 
+    Input:
+    :imgs: a list of images as uint16 numpy array
+    :labels: a list of masks of the embilized areas of the images as boolean numpy array
+    :in_size: axis size of U-NET inputs
+    :out_size: axis size of U-NET outputs
+    Output:
+    :X: a 3D numpy array of the inputs for the U-NET
+    :y: a 3D numpy array of the outputs for the U-NET
+    '''
+    X, y = [], [] # lists of input and output data respectively
+    ext = in_size - out_size # extand-mirror overall length
+    for i, img in enumerate(imgs): # run through all images
+        img_shp = np.array(img.shape) # store original image shape
+        img_aug = extend_mirror(img, img_shp+ext) # extand-mirror input image
+        segs = np.ceil(img_shp / out_size) # number of segments in each axis
+        vg,hg = np.meshgrid(np.arange(segs[0]),np.arange(segs[1])) # create a grid of each axis
+        grid = np.array([vg.ravel(),hg.ravel()]).T.astype(np.uint8) # create an array of segments coordinates
+        for vh in grid: # run for each segment coordinate
+            X_start = np.rint(vh*img_shp/segs + (ext/2 - in_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of input
+            y_start = np.rint(vh*img_shp/segs - (out_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of output
+            Xi = img_aug[X_start[0]:X_start[0]+in_size, X_start[1]:X_start[1]+in_size] # extract input segment
+            yi = labels[i][y_start[0]:y_start[0]+out_size, y_start[1]:y_start[1]+out_size] # extract output segment
+            X.append(Xi) # add to inputs list
+            y.append(yi) # add to outputs list
+    return np.array(X), np.array(y) # convert to np.array and return
