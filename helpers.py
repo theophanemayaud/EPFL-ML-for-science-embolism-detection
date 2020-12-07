@@ -132,7 +132,6 @@ def augment_data(imgs, labels):
         imgs_aug.append(cv.flip(img,1))
         labels_aug.append(cv.flip(label,1))
         for r in rotations: # to cover all rotations
-            angle = str((j+1)*90)
             # add rotated version 
             imgs_aug.append(cv.rotate(img,r))
             labels_aug.append(cv.rotate(label,r))
