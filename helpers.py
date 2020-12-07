@@ -192,7 +192,7 @@ def png_to_mask(png):
         
     return mask
 
-def segment_dataset(imgs, labels, in_size=572, out_size=388):
+def segment_dataset(imgs, labels, in_size=572, out_size=388, augment=False):
     '''
     A method to create a dataset ready to be used by a U-NET 
     Input:
@@ -200,12 +200,15 @@ def segment_dataset(imgs, labels, in_size=572, out_size=388):
     :labels: a list of masks of the embilized areas of the images as boolean numpy array
     :in_size: axis size of U-NET inputs
     :out_size: axis size of U-NET outputs
+    :augment: boolean dictating if to apply data augmentation or not
     Output:
     :X: a 3D numpy array of the inputs for the U-NET
     :y: a 3D numpy array of the outputs for the U-NET
     '''
     X, y = [], [] # lists of input and output data respectively
     ext = in_size - out_size # extand-mirror overall length
+    if augment:
+        imgs, labels = augment_data(imgs, labels)
     for i, img in enumerate(imgs): # run through all images
         img_shp = np.array(img.shape) # store original image shape
         img_aug = extend_mirror(img, img_shp+ext) # extand-mirror input image
