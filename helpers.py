@@ -108,9 +108,7 @@ def augment_data(imgs, labels):
     :imgs_aug: a list of augmented images as uint16 numpy array
     :labels_aug: a list of masks of the embilized areas of the augmented images as boolean numpy array
     '''
-    imgs_aug, labels_aug = [],[]
-    imgs_aug += imgs
-    labels_aug += labels
+    imgs_aug, labels_aug = imgs, labels
     # add noisy versions
     n = len(imgs)
     noiseLvls = [0.2,0.1,0.05]
@@ -191,7 +189,7 @@ def png_to_mask(png):
         
     return mask
 
-def segment_dataset(imgs, labels, in_size=572, out_size=388, augment=False):
+def segment_dataset(imgs_, labels_, in_size=572, out_size=388, augment=False):
     '''
     A method to create a dataset ready to be used by a U-NET 
     Input:
@@ -207,7 +205,9 @@ def segment_dataset(imgs, labels, in_size=572, out_size=388, augment=False):
     X, y = [], [] # lists of input and output data respectively
     ext = in_size - out_size # extand-mirror overall length
     if augment:
-        imgs, labels = augment_data(imgs, labels)
+        imgs, labels = augment_data(imgs_, labels_)
+    else:
+        imgs, labels = imgs_, labels_
     for i, img in enumerate(imgs): # run through all images
         img_shp = np.array(img.shape) # store original image shape
         img_aug = extend_mirror(img, img_shp+ext) # extand-mirror input image
