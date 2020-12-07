@@ -97,35 +97,29 @@ def extend_mirror(img, out_size):
     out[v_edge_d:,h_edge_r:] = np.fliplr(out[v_edge_d:,2*h_edge_r:h_edge_r]) # bottom-right
     return out
 
-def augment_data(imgs, labels, names):
+def augment_data(imgs, labels):
     '''
-    A method to apply data augmentation on a list of imgs and their respective labels and names
+    A method to apply data augmentation on a list of imgs and their respective labels
     Input:
     :imgs: a list of images as uint16 numpy array
     :labels: a list of masks of the embilized areas of the images as boolean numpy array
-    :names: a list of the images' names
     :out_size: a tuple of the desired output resolution
     Output:
     :imgs_aug: a list of augmented images as uint16 numpy array
     :labels_aug: a list of masks of the embilized areas of the augmented images as boolean numpy array
-    :names_aug: a list of the augmented images' names
     '''
-    imgs_aug, labels_aug, names_aug = [],[],[]
+    imgs_aug, labels_aug = [],[]
     imgs_aug += imgs
     labels_aug += labels
-    names_aug += names
     # add noisy versions
     n = len(imgs)
     noiseLvls = [0.2,0.1,0.05]
     for i in range(n):
         row,col = imgs[i].shape
-        name = names[i]
-        for j,noise in enumerate(noiseLvls):
+        for noise in noiseLvls:
             imgs_aug.append(imgs[i]+np.random.normal(0.0,noise,(row,col))*65535)
-            names_aug.append(name+'_gn'+str(j))
             labels_aug.append(labels[i])
         imgs_aug.append(imgs[i]*(np.random.randn(row,col)*0.4+1))
-        names_aug.append(name+'_sn')
         labels_aug.append(labels[i])
 
     # add rotated and flipped versions
@@ -134,23 +128,19 @@ def augment_data(imgs, labels, names):
     for i in range(n):
         img = imgs_aug[i]
         label = labels_aug[i]
-        name = names_aug[i]
         # add mirrored version
         imgs_aug.append(cv.flip(img,1))
         labels_aug.append(cv.flip(label,1))
-        names_aug.append(name+'_f')
-        for j,r in enumerate(rotations): # to cover all rotations
+        for r in rotations: # to cover all rotations
             angle = str((j+1)*90)
             # add rotated version 
             imgs_aug.append(cv.rotate(img,r))
             labels_aug.append(cv.rotate(label,r))
-            names_aug.append(name+'_r'+angle)
             # add rotated mirrored version
             imgs_aug.append(cv.rotate(cv.flip(img,1),r))
             labels_aug.append(cv.rotate(cv.flip(label,1),r))
-            names_aug.append(name+'_f_r'+angle)
     
-    return imgs_aug, labels_aug, names_aug
+    return imgs_aug, labels_aug
 
 
 def mask_to_png(mask, color=[255,0,0]):
