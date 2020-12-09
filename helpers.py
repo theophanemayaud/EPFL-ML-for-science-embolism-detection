@@ -203,7 +203,10 @@ def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, au
     :y: a 3D numpy array of the outputs for the U-NET
     '''
     X, y = [], [] # lists of input and output data respectively
-    ext = in_size - out_size # extand-mirror overall length
+    if extend:
+        ext = in_size - out_size # extand-mirror overall length
+    else:
+        ext = 0
     if augment:
         imgs, labels = augment_data(imgs_, labels_)
     else:
