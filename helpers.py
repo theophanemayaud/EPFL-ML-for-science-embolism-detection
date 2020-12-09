@@ -110,15 +110,15 @@ def augment_data(imgs, labels):
     '''
     imgs_aug, labels_aug = imgs, labels
     # add noisy versions
-    n = len(imgs)
-    noiseLvls = [0.2,0.1,0.05]
-    for i in range(n):
-        row,col = imgs[i].shape
-        for noise in noiseLvls:
-            imgs_aug.append(imgs[i]+np.random.normal(0.0,noise,(row,col))*65535)
-            labels_aug.append(labels[i])
-        imgs_aug.append(imgs[i]*(np.random.randn(row,col)*0.4+1))
-        labels_aug.append(labels[i])
+    # n = len(imgs)
+    # noiseLvls = [0.2,0.1,0.05]
+    # for i in range(n):
+        # row,col = imgs[i].shape
+        # for noise in noiseLvls:
+            # imgs_aug.append(imgs[i]+np.random.normal(0.0,noise,(row,col))*65535)
+            # labels_aug.append(labels[i])
+        # imgs_aug.append(imgs[i]*(np.random.randn(row,col)*0.4+1))
+        # labels_aug.append(labels[i])
 
     # add rotated and flipped versions
     n = len(imgs_aug)
@@ -189,7 +189,7 @@ def png_to_mask(png):
         
     return mask
 
-def segment_dataset(imgs_, labels_, in_size=572, out_size=388, augment=False):
+def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, augment=False):
     '''
     A method to create a dataset ready to be used by a U-NET 
     Input:
@@ -210,7 +210,10 @@ def segment_dataset(imgs_, labels_, in_size=572, out_size=388, augment=False):
         imgs, labels = imgs_, labels_
     for i, img in enumerate(imgs): # run through all images
         img_shp = np.array(img.shape) # store original image shape
-        img_aug = extend_mirror(img, img_shp+ext) # extand-mirror input image
+        if extend:
+            img_aug = extend_mirror(img, img_shp+ext) # extand-mirror input image
+        else:
+            img_aug = img
         segs = np.ceil(img_shp / out_size) # number of segments in each axis
         vg,hg = np.meshgrid(np.arange(segs[0]),np.arange(segs[1])) # create a grid of each axis
         grid = np.array([vg.ravel(),hg.ravel()]).T.astype(np.uint8) # create an array of segments coordinates
