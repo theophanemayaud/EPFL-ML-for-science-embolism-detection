@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import label as region_map
 import cv2 as cv
+import torch
 
 def extract_name(path):
     '''
@@ -110,15 +111,15 @@ def augment_data(imgs, labels):
     '''
     imgs_aug, labels_aug = imgs, labels
     # add noisy versions
-    # n = len(imgs)
-    # noiseLvls = [0.2,0.1,0.05]
-    # for i in range(n):
-        # row,col = imgs[i].shape
-        # for noise in noiseLvls:
-            # imgs_aug.append(imgs[i]+np.random.normal(0.0,noise,(row,col))*65535)
-            # labels_aug.append(labels[i])
-        # imgs_aug.append(imgs[i]*(np.random.randn(row,col)*0.4+1))
-        # labels_aug.append(labels[i])
+    n = len(imgs)
+    noiseLvls = [0.2,0.1]
+    for i in range(n):
+        row,col = imgs[i].shape
+        for noise in noiseLvls:
+            imgs_aug.append(imgs[i]+np.random.normal(0.0,noise,(row,col))*65535)
+            labels_aug.append(labels[i])
+        imgs_aug.append(imgs[i]*(np.random.randn(row,col)*0.4+1))
+        labels_aug.append(labels[i])
 
     # add rotated and flipped versions
     n = len(imgs_aug)
@@ -228,3 +229,47 @@ def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, au
             X.append(Xi) # add to inputs list
             y.append(yi) # add to outputs list
     return np.array(X), np.array(y) # convert to np.array and return
+
+def out_predict(model, img, label, device, in_size=572, out_size=388, extend = True):
+    '''
+    A method to create a dataset ready to be used by a U-NET 
+    Input:
+    :model: the trained U-NET model
+    :img: 2D numpy array with the image
+    :label: 2D numpy array with the label
+    :device: CUDA or CPU to use for the tensors
+    :in_size: axis size of U-NET inputs
+    :out_size: axis size of U-NET outputs
+    Output:
+    :pred: 2D numpy array with the prediction
+    '''
+    if extend:
+        ext = in_size - out_size # extand-mirror overall length
+    else:
+        ext = 0
+    img_shp = np.array(img.shape) # store original image shape
+    if extend:
+        img_ext = extend_mirror(img, img_shp+ext) # extand-mirror input image
+    else:
+        img_ext = img
+    segs = np.ceil(img_shp / out_size) # number of segments in each axis
+    vg,hg = np.meshgrid(np.arange(segs[0]),np.arange(segs[1])) # create a grid of each axis
+    grid = np.array([vg.ravel(),hg.ravel()]).T.astype(np.uint8) # create an array of segments coordinates
+    # pred_max_logit = torch.zeros(1,2,img_shp[0],img_shp[1]).to(device)
+    # pred = torch.zeros(1,1,img_shp[0],img_shp[1])
+    pred_max_logit = np.zeros((img_shp[0],img_shp[1],2))
+    pred = np.zeros_like(img)
+    for vh in grid: # run for each segment coordinate
+        X_start = np.rint(vh*img_shp/segs + (ext/2 - in_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of input
+        y_start = np.rint(vh*img_shp/segs - (out_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of output
+        Xi = img_ext[X_start[0]:X_start[0]+in_size, X_start[1]:X_start[1]+in_size] # extract input segment
+        # Create data tensors
+        tensor_X = torch.Tensor(Xi).view(1,1,in_size,in_size)
+        tensor_X= tensor_X.to(device)
+        # Evaluate the network (forward pass)
+        prediction = model(tensor_X).view((img_shp[0],img_shp[1],2)).detatch().numpy()
+        pred_max_logit[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size,:] = np.maximum(prediction,pred_max_logit[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size,:])
+        pred[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size] = np.argmax(pred_max_logitpred_max_logit[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size,:],axis=2)
+        # pred_max_logit[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size] = torch.maximum(model(tensor_X),pred_max_logit[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size])
+        # pred[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size] = torch.argmax(pred_max_logit[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size],dim=1)
+    return pred # convert to np.array and return
