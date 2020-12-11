@@ -190,6 +190,46 @@ def png_to_mask(png):
         
     return mask
 
+def compute_emb_surf_pred_error(original_label, predicted_label, print_values=False):
+    '''From the original and predicted labels, compute 100*(sign(pred1s-orig1s)*abs(pred1s-orig1s))/orig1s % (0% is perfect)
+    
+    Note : 0% is a perfect score. 
+            Positive values means there are more predicted pixels than actual, 
+            ex 100% means 2x more predicted pixels, 
+            200% means 3x as many predicted pixels. 
+            -100% means 2x more original pixels,  
+            -200% means 3x more original pixels
+            This is 
+    
+    input
+    -----
+    original_label : 2d numpy array of 1 and 0 only
+    predicted_label : 2d numpy array of 1 and 0 only of same size as original_label
+    print_values : bolean whether the function should print number of pixels
+                    at 1 for each
+    
+    output
+    ------
+    error of surface prediction in percentage (can be positive and negative, 
+        if predicted more or less than should have). The ideal is 
+        0% : no over or under pixels were predicted.
+    '''
+    if original_label.shape != predicted_label.shape:
+        raise NameError("Inputs must be 2d numpy arrays of same sizes")
+    ori_lab_counts = np.count_nonzero(original_label == 1)
+    pred_lab_counts = np.count_nonzero(pred_lab_seg == 1)
+    if ori_lab_counts == 0:
+        ori_lab_counts = 1; #fix when some masks are 0 to not have divide by 0
+    if pred_lab_counts >= ori_lab_counts:
+        emb_surf_pred_error = 100*(pred_lab_counts-ori_lab_counts)/ori_lab_counts
+    else:
+        emb_surf_pred_error = -100*(ori_lab_counts-pred_lab_counts)/ori_lab_counts
+
+    if print_values==True:
+        print(f"orig label 1s={ori_lab_counts}, pred 1s={pred_lab_counts}")
+        
+    return emb_surf_pred_error
+
 def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, augment=False):
     '''
     A method to create a dataset ready to be used by a U-NET 
