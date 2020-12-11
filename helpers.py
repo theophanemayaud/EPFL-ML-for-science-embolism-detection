@@ -191,7 +191,7 @@ def png_to_mask(png):
     return mask
 
 def compute_emb_surf_pred_error(original_label, predicted_label, print_values=False):
-    '''From the original and predicted labels, compute 100*(sign(pred1s-orig1s)*abs(pred1s-orig1s))/orig1s % (0% is perfect)
+    '''From the original and predicted labels compute surface % error(0% is perfect)
     
     Note : 0% is a perfect score. 
             Positive values means there are more predicted pixels than actual, 
@@ -217,7 +217,7 @@ def compute_emb_surf_pred_error(original_label, predicted_label, print_values=Fa
     if original_label.shape != predicted_label.shape:
         raise NameError("Inputs must be 2d numpy arrays of same sizes")
     ori_lab_counts = np.count_nonzero(original_label == 1)
-    pred_lab_counts = np.count_nonzero(pred_lab_seg == 1)
+    pred_lab_counts = np.count_nonzero(predicted_label == 1)
     if ori_lab_counts == 0:
         ori_lab_counts = 1; #fix when some masks are 0 to not have divide by 0
     if pred_lab_counts >= ori_lab_counts:
