@@ -238,6 +238,7 @@ def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, au
     :labels: a list of masks of the embilized areas of the images as boolean numpy array
     :in_size: axis size of U-NET inputs
     :out_size: axis size of U-NET outputs
+    :extend: boolean dictating if to apply image mirror-extension or not
     :augment: boolean dictating if to apply data augmentation or not
     Output:
     :X: a 3D numpy array of the inputs for the U-NET
@@ -257,29 +258,29 @@ def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, au
         if extend:
             img_aug = extend_mirror(img, img_shp+ext) # extand-mirror input image
         else:
-            img_aug = img
+            img_aug = img # original input in the case no extention
         segs = np.ceil(img_shp / out_size) # number of segments in each axis
         vg,hg = np.meshgrid(np.arange(segs[0]),np.arange(segs[1])) # create a grid of each axis
         grid = np.array([vg.ravel(),hg.ravel()]).T.astype(np.uint8) # create an array of segments coordinates
+        segs -= 1 # change segs to axis index value limits
         for vh in grid: # run for each segment coordinate
-            X_start = np.rint(vh*img_shp/segs + (ext/2 - in_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of input
-            y_start = np.rint(vh*img_shp/segs - (out_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of output
-            Xi = img_aug[X_start[0]:X_start[0]+in_size, X_start[1]:X_start[1]+in_size] # extract input segment
-            yi = labels[i][y_start[0]:y_start[0]+out_size, y_start[1]:y_start[1]+out_size] # extract output segment
+            start = np.rint(vh*img_shp/segs - (out_size/2)*(np.sum([(0<vh),(vh==segs)],axis=0))).astype(np.uint16) # start pixel of output
+            Xi = img_aug[start[0]:start[0]+in_size, start[1]:start[1]+in_size] # extract input segment
+            yi = labels[i][start[0]:start[0]+out_size, start[1]:start[1]+out_size] # extract output segment
             X.append(Xi) # add to inputs list
             y.append(yi) # add to outputs list
     return np.array(X), np.array(y) # convert to np.array and return
 
-def out_predict(model, img, label, device, in_size=572, out_size=388, extend = True):
+def out_predict(model, img, device, in_size=572, out_size=388, extend=True):
     '''
     A method to create a dataset ready to be used by a U-NET 
     Input:
     :model: the trained U-NET model
     :img: 2D numpy array with the image
-    :label: 2D numpy array with the label
     :device: CUDA or CPU to use for the tensors
     :in_size: axis size of U-NET inputs
     :out_size: axis size of U-NET outputs
+    :extend: boolean dictating if to apply image mirror-extension or not
     Output:
     :pred: 2D numpy array with the prediction
     '''
@@ -291,25 +292,22 @@ def out_predict(model, img, label, device, in_size=572, out_size=388, extend = T
     if extend:
         img_ext = extend_mirror(img, img_shp+ext) # extand-mirror input image
     else:
-        img_ext = img
+        img_ext = img # original input in the case no extention
     segs = np.ceil(img_shp / out_size) # number of segments in each axis
     vg,hg = np.meshgrid(np.arange(segs[0]),np.arange(segs[1])) # create a grid of each axis
     grid = np.array([vg.ravel(),hg.ravel()]).T.astype(np.uint8) # create an array of segments coordinates
-    # pred_max_logit = torch.zeros(1,2,img_shp[0],img_shp[1]).to(device)
-    # pred = torch.zeros(1,1,img_shp[0],img_shp[1])
-    pred_max_logit = np.zeros((img_shp[0],img_shp[1],2))
+    segs -= 1 # change segs to axis index value limits
+    pred_max_logit = np.ones((2,img_shp[0],img_shp[1])) * np.nan # max probability 
     pred = np.zeros_like(img)
     for vh in grid: # run for each segment coordinate
-        X_start = np.rint(vh*img_shp/segs + (ext/2 - in_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of input
-        y_start = np.rint(vh*img_shp/segs - (out_size/2)*((0<vh)+(segs<=vh))).astype(np.uint16) # start pixel of output
-        Xi = img_ext[X_start[0]:X_start[0]+in_size, X_start[1]:X_start[1]+in_size] # extract input segment
-        # Create data tensors
+        start = np.rint(vh*img_shp/segs - (out_size/2)*(np.sum([(0<vh),(vh==segs)],axis=0))).astype(np.uint16) # start pixel for input and output
+        Xi = img_ext[start[0]:start[0]+in_size, start[1]:start[1]+in_size] # extract input segment
+        # Create input tensor
         tensor_X = torch.Tensor(Xi).view(1,1,in_size,in_size)
-        tensor_X= tensor_X.to(device)
-        # Evaluate the network (forward pass)
-        prediction = model(tensor_X).view((img_shp[0],img_shp[1],2)).detatch().numpy()
-        pred_max_logit[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size,:] = np.maximum(prediction,pred_max_logit[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size,:])
-        pred[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size] = np.argmax(pred_max_logitpred_max_logit[y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size,:],axis=2)
-        # pred_max_logit[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size] = torch.maximum(model(tensor_X),pred_max_logit[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size])
-        # pred[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size] = torch.argmax(pred_max_logit[:,:,y_start[0]:y_start[0]+out_size,y_start[1]:y_start[1]+out_size],dim=1)
+        tensor_X = tensor_X.to(device)
+        # Predict output and select best overlapping prediction
+        prediction = model(tensor_X).detach()
+        prediction = prediction.cpu().numpy().squeeze()
+        pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.fmax(prediction,pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size])
+        pred[start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.argmax(pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size],axis=0)
     return pred # convert to np.array and return
