@@ -235,6 +235,37 @@ def compute_emb_surf_pred_error(original_label, predicted_label, print_values=Fa
         
     return emb_surf_pred_error
 
+def confusion(pred, test_labels, data_type):
+    '''Calculate the percentage of true-positive, true-negative, false-positive, and false-negative
+    
+    Input :
+    pred: prediction of the labels, either tensor or numpy array
+        if torch.tensor (result of U-net) of size [num_batches=1, 2, dim_image1, dim_image2],
+        if numpy must be 2d array of 1 and 0
+    test_labels: Real labels for the image, either tensor or numpy array
+        if torch.tensor () must be same dimensions as prediction
+        if numpy, must be 2d array of 1 and 0 of same dimensions as prediction
+    data_type: string either tensor or numpy, indicating type on pred and test_labels
+    
+    Return:
+    TP, FP, TN, TP rates as ratio over 1
+    '''
+    if data_type == "torch":
+        pred_, lbls_ = torch.argmax(pred,dim=1).view(-1), test_labels.view(-1)
+        TP = torch.sum(torch.logical_and(pred_==1, lbls_==1)) / torch.sum(lbls_==1)
+        TN = torch.sum(torch.logical_and(pred_==0, lbls_==0)) / torch.sum(lbls_==0)
+        FP = torch.sum(torch.logical_and(pred_==1, lbls_==0)) / torch.sum(lbls_==0)
+        FN = torch.sum(torch.logical_and(pred_==0, lbls_==1)) / torch.sum(lbls_==1)
+    elif data_type == "numpy":
+        TP = ((pred==1)*(test_labels==1)).sum() / (test_labels==1).sum()
+        TN = ((pred==0)*(test_labels==0)).sum() / (test_labels==0).sum()
+        FP = ((pred==1)*(test_labels==0)).sum() / (test_labels==0).sum()
+        FN = ((pred==0)*(test_labels==1)).sum() / (test_labels==1).sum()
+    else:
+        raise NameError("You must specify a type !!!")
+
+    return TP, FP, TN, TP
+
 def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, augment=[False, False]):
     '''
     A method to create a dataset ready to be used by a U-NET 
