@@ -79,66 +79,71 @@ def extend_mirror(img, out_size):
     if np.any(3*img.shape>tuple(out_size)):
         raise Exception('Error: at least on of out_size axes is at least 3 times larger than the image shape')
     # output parameters
-    out = np.zeros(out_size)
-    v_edge_u = (out_size[0]-img.shape[0]) // 2
-    v_edge_d = -(out_size[0]-img.shape[0]-v_edge_u)
-    h_edge_l = (out_size[1]-img.shape[1]) // 2
-    h_edge_r = -(out_size[1]-img.shape[1]-h_edge_l)
+    out = np.zeros(out_size) # initialize output image
+    v_edge_u = (out_size[0]-img.shape[0]) // 2 # amount of pixels added to the top of the image
+    v_edge_d = -(out_size[0]-img.shape[0]-v_edge_u) # amount of pixels added to the bottom of the image
+    h_edge_l = (out_size[1]-img.shape[1]) // 2 # amount of pixels added to the left of the image
+    h_edge_r = -(out_size[1]-img.shape[1]-h_edge_l) # amount of pixels added to the right of the image
     # output centre
-    out[v_edge_u:v_edge_d,h_edge_l:h_edge_r] = img
+    out[v_edge_u:v_edge_d,h_edge_l:h_edge_r] = img # copy the original to the center
     # output sides
-    out[:v_edge_u,h_edge_l:h_edge_r] = np.flipud(img[:v_edge_u,:]) # top
-    out[v_edge_d:,h_edge_l:h_edge_r] = np.flipud(img[v_edge_d:,:]) # bottom
-    out[v_edge_u:v_edge_d,:h_edge_l] = np.fliplr(img[:,:h_edge_l]) # left
-    out[v_edge_u:v_edge_d,h_edge_r:] = np.fliplr(img[:,h_edge_r:]) # right
+    out[:v_edge_u,h_edge_l:h_edge_r] = np.flipud(img[:v_edge_u,:]) # extend mirror to the top
+    out[v_edge_d:,h_edge_l:h_edge_r] = np.flipud(img[v_edge_d:,:]) # extend mirror to the bottom
+    out[v_edge_u:v_edge_d,:h_edge_l] = np.fliplr(img[:,:h_edge_l]) # extend mirror to the left
+    out[v_edge_u:v_edge_d,h_edge_r:] = np.fliplr(img[:,h_edge_r:]) # extend mirror to the right
     # output corners
-    out[:v_edge_u,:h_edge_l] = np.fliplr(out[:v_edge_u,h_edge_l:h_edge_l*2]) # top-left
-    out[:v_edge_u,h_edge_r:] = np.fliplr(out[:v_edge_u,2*h_edge_r:h_edge_r]) # top-right
-    out[v_edge_d:,:h_edge_l] = np.fliplr(out[v_edge_d:,h_edge_l:h_edge_l*2]) # bottom-left
-    out[v_edge_d:,h_edge_r:] = np.fliplr(out[v_edge_d:,2*h_edge_r:h_edge_r]) # bottom-right
-    return out
+    out[:v_edge_u,:h_edge_l] = np.fliplr(out[:v_edge_u,h_edge_l:h_edge_l*2]) # extend mirror to the top-left
+    out[:v_edge_u,h_edge_r:] = np.fliplr(out[:v_edge_u,2*h_edge_r:h_edge_r]) # extend mirror to the top-right
+    out[v_edge_d:,:h_edge_l] = np.fliplr(out[v_edge_d:,h_edge_l:h_edge_l*2]) # extend mirror to the bottom-left
+    out[v_edge_d:,h_edge_r:] = np.fliplr(out[v_edge_d:,2*h_edge_r:h_edge_r]) # extend mirror to the bottom-right
+    return out # return extended image
 
-def augment_data(imgs, labels):
+def augment_data(imgs, labels, noise=True, flip_rotate=False):
     '''
     A method to apply data augmentation on a list of imgs and their respective labels
     Input:
     :imgs: a list of images as uint16 numpy array
     :labels: a list of masks of the embilized areas of the images as boolean numpy array
-    :out_size: a tuple of the desired output resolution
+    :noise: a boolean dictating if to add noisy versions of the samples
+    :fliip_rotate: a boolean dictating if to add fliped and rotated versions of the samples
     Output:
     :imgs_aug: a list of augmented images as uint16 numpy array
     :labels_aug: a list of masks of the embilized areas of the augmented images as boolean numpy array
     '''
-    imgs_aug, labels_aug = imgs, labels
+    imgs_aug, labels_aug = imgs, labels # lists of the augmented data
     # add noisy versions
-    n = len(imgs)
-    noiseLvls = [0.2,0.1]
-    for i in range(n):
-        row,col = imgs[i].shape
-        for noise in noiseLvls:
-            imgs_aug.append(imgs[i]+np.random.normal(0.0,noise,(row,col))*65535)
-            labels_aug.append(labels[i])
-        imgs_aug.append(imgs[i]*(np.random.randn(row,col)*0.4+1))
-        labels_aug.append(labels[i])
+    if noise:
+        n = len(imgs) # amount of samples to augment
+        noiseLvls = [0.2,0.1] # values of sigmas for gaussian distribution
+        for i in range(n): # run for every sample
+            row,col = imgs[i].shape # row and column sizes for random array sizes
+            # add Gaussian noise
+            for noise in noiseLvls:
+                imgs_aug.append(imgs[i]+np.random.normal(0.0,noise,(row,col))*65535) # add noise to image
+                labels_aug.append(labels[i]) # add matching label matrix
+            # add speckle noise
+            imgs_aug.append(imgs[i]*(np.random.randn(row,col)*0.4+1)) # add noise to image
+            labels_aug.append(labels[i]) # add matching label matrix
 
     # add rotated and flipped versions
-    n = len(imgs_aug)
-    rotations = [cv.ROTATE_90_CLOCKWISE, cv.ROTATE_180, cv.ROTATE_90_COUNTERCLOCKWISE]
-    for i in range(n):
-        img = imgs_aug[i]
-        label = labels_aug[i]
-        # add mirrored version
-        imgs_aug.append(cv.flip(img,1))
-        labels_aug.append(cv.flip(label,1))
-        for r in rotations: # to cover all rotations
-            # add rotated version 
-            imgs_aug.append(cv.rotate(img,r))
-            labels_aug.append(cv.rotate(label,r))
-            # add rotated mirrored version
-            imgs_aug.append(cv.rotate(cv.flip(img,1),r))
-            labels_aug.append(cv.rotate(cv.flip(label,1),r))
-    
-    return imgs_aug, labels_aug
+    if flip_rotate:
+        n = len(imgs_aug) # amount of samples to augment
+        rotations = [cv.ROTATE_90_CLOCKWISE, cv.ROTATE_180, cv.ROTATE_90_COUNTERCLOCKWISE] # values of rotations for cv.rotate()
+        for i in range(n): # run for every sample
+            img = imgs_aug[i] # current original image
+            label = labels_aug[i] # current original label
+            # add mirrored version
+            imgs_aug.append(cv.flip(img,1)) # mirror image
+            labels_aug.append(cv.flip(label,1)) # mirror label
+            for r in rotations: # to cover all rotations
+                # add rotated version 
+                imgs_aug.append(cv.rotate(img,r)) # rotate image
+                labels_aug.append(cv.rotate(label,r)) # rotate label
+                # add rotated mirrored version
+                imgs_aug.append(cv.rotate(cv.flip(img,1),r)) # flip and rotate image
+                labels_aug.append(cv.rotate(cv.flip(label,1),r)) # flip and rotate label
+        
+    return imgs_aug, labels_aug # return augmented samples
 
 
 def mask_to_png(mask, color=[255,0,0]):
@@ -230,7 +235,7 @@ def compute_emb_surf_pred_error(original_label, predicted_label, print_values=Fa
         
     return emb_surf_pred_error
 
-def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, augment=False):
+def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, augment=[False, False]):
     '''
     A method to create a dataset ready to be used by a U-NET 
     Input:
@@ -248,25 +253,25 @@ def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, au
     if extend:
         ext = in_size - out_size # extand-mirror overall length
     else:
-        ext = 0
-    if augment:
-        imgs, labels = augment_data(imgs_, labels_)
+        ext = 0 # extention size is 0 in the case of no extention
+    if np.any(augment):
+        imgs, labels = augment_data(imgs_, labels_, noise=augment[0], flip_rotate=augment[1]) # augmented images and labels lists
     else:
-        imgs, labels = imgs_, labels_
+        imgs, labels = imgs_, labels_ # maintain original images and labels in the case of no augmentation
     for i, img in enumerate(imgs): # run through all images
         img_shp = np.array(img.shape) # store original image shape
         if extend:
             img_aug = extend_mirror(img, img_shp+ext) # extand-mirror input image
         else:
-            img_aug = img # original input in the case no extention
+            img_aug = img # original input in the case of no extention
         segs = np.ceil(img_shp / out_size) # number of segments in each axis
         vg,hg = np.meshgrid(np.arange(segs[0]),np.arange(segs[1])) # create a grid of each axis
         grid = np.array([vg.ravel(),hg.ravel()]).T.astype(np.uint8) # create an array of segments coordinates
-        segs -= 1 # change segs to axis index value limits
+        ol_block = (img_shp - out_size) / (segs - 1) # calculate size of overlapping blocks
         for vh in grid: # run for each segment coordinate
-            start = np.rint(vh*img_shp/segs - (out_size/2)*(np.sum([(0<vh),(vh==segs)],axis=0))).astype(np.uint16) # start pixel of output
-            Xi = img_aug[start[0]:start[0]+in_size, start[1]:start[1]+in_size] # extract input segment
-            yi = labels[i][start[0]:start[0]+out_size, start[1]:start[1]+out_size] # extract output segment
+            start = np.rint(ol_block*vh).astype(np.uint16) # calculate start pixel 
+            Xi = img_aug[start[0]:start[0]+in_size, start[1]:start[1]+in_size] # slice input segment
+            yi = labels[i][start[0]:start[0]+out_size, start[1]:start[1]+out_size] # slice output segment
             X.append(Xi) # add to inputs list
             y.append(yi) # add to outputs list
     return np.array(X), np.array(y) # convert to np.array and return
@@ -296,18 +301,19 @@ def out_predict(model, img, device, in_size=572, out_size=388, extend=True):
     segs = np.ceil(img_shp / out_size) # number of segments in each axis
     vg,hg = np.meshgrid(np.arange(segs[0]),np.arange(segs[1])) # create a grid of each axis
     grid = np.array([vg.ravel(),hg.ravel()]).T.astype(np.uint8) # create an array of segments coordinates
-    segs -= 1 # change segs to axis index value limits
+    # segs -= 1 # change segs to axis index value limits
+    ol_block = (img_shp - out_size) / (segs - 1) # calculate size of overlapping blocks
     pred_max_logit = np.ones((2,img_shp[0],img_shp[1])) * np.nan # max probability 
     pred = np.zeros_like(img)
     for vh in grid: # run for each segment coordinate
-        start = np.rint(vh*img_shp/segs - (out_size/2)*(np.sum([(0<vh),(vh==segs)],axis=0))).astype(np.uint16) # start pixel for input and output
-        Xi = img_ext[start[0]:start[0]+in_size, start[1]:start[1]+in_size] # extract input segment
+        start = np.rint(ol_block*vh).astype(np.uint16) # calculate start pixel
+        Xi = img_ext[start[0]:start[0]+in_size, start[1]:start[1]+in_size] # slice input segment
         # Create input tensor
-        tensor_X = torch.Tensor(Xi).view(1,1,in_size,in_size)
-        tensor_X = tensor_X.to(device)
+        tensor_X = torch.Tensor(Xi).view(1,1,in_size,in_size) # create a Tensor of segment input
+        tensor_X = tensor_X.to(device) # send to GPU/CPU
         # Predict output and select best overlapping prediction
-        prediction = model(tensor_X).detach()
-        prediction = prediction.cpu().numpy().squeeze()
-        pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.fmax(prediction,pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size])
-        pred[start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.argmax(pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size],axis=0)
+        prediction = model(tensor_X).detach() # calculate prediction
+        prediction = prediction.cpu().numpy().squeeze() # convert to numpy matrix
+        pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.fmax(prediction,pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size]) # check for class max lieklihood for each overlapping pixel
+        pred[start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.argmax(pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size],axis=0) # determine class of segment's pixels
     return pred # convert to np.array and return
