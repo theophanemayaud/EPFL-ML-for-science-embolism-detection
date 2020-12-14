@@ -266,7 +266,7 @@ def confusion(pred, test_labels, data_type):
     else:
         raise NameError("You must specify a type !!!")
 
-    return TP, FP, TN, TP
+    return TP, TN, FP, FN
 
 def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, augment=[False, False]):
     '''
