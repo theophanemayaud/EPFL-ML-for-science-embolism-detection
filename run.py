@@ -93,6 +93,7 @@ def main():
 
     # create CSV from dictionary
     pd.DataFrame.from_dict(csv_dict).to_csv('.\\output\\analyzed_data.csv', index=False)
+    print(f'Process complete!!\nThe overlayed living images are in {'.\\output\\living\\<plant_name>'}.\nThe overlayed flushed images are in {'.\\output\\flushed\\<plant_name>'}.\nThe CVS file  is in {.\\output\\analyzed_data.csv})
 
 
 #############################
@@ -107,7 +108,7 @@ usage: pipeline.py living_plants_path flushed_plants_path [options] ...
 
 *****************************************
 
-This is a tool to detect and analyze the ratio between embolism regions in living and flushed plants. The tool requires seperate paths to the top directories containing all the living and flushed plant images
+This is a tool to detect and analyze the ratio between embolism regions in living and flushed plants. The tool requires seperate paths to the top directories containing all the living and flushed plant images.
 
 living_plants_path      A path to the top directory of all living plants images.
 flushed_plants_path     A path to the top directory of all flushed plants images.
@@ -124,7 +125,7 @@ Options:
 *****************************************
 
 Example:
-    pipeline.py living_plants_path flushed_plants_path -model ./models/ -type PNG
+    pipeline.py .\\living\\ .\\flushed\\ -model .\\models\\ -type PNG
 
 
 *****************************************
