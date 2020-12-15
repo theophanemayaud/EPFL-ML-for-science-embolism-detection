@@ -1,8 +1,14 @@
-glob2
-opencv-python
-numpy
-torch
-matplotlib
-pandas
+python==3.7
+ipython==7.19.0
 
-jupyter
+glob2==0.7
+opencv-python==4.4.0.46
+numpy==1.18.5
+torch==1.7.1
+matplotlib
+pandas==1.1.4
+
+matplotlib==3.3.2
+seaborn==0.11.0
+
+jupyterlab==1.2.16
