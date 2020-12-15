@@ -1,0 +1,8 @@
+glob2
+opencv-python
+numpy
+torch
+matplotlib
+pandas
+
+jupyter
