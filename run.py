@@ -1,13 +1,19 @@
+# import libraries
+import glob, os, ntpath, sys
 import numpy as np
+import pandas as pd
 import cv2 as cv
 import torch
-import glob
-import sys
+import xml.etree.ElementTree as ET
+from scipy.ndimage import label as region_map
 
 def main():
-    # list all the images in the subfolders
-    imgs_names_l = np.array(sorted(glob.glob(living_plants_path+'*'+type)),dtype=object)
-    imgs_names_f = np.array(sorted(glob.glob(flushed_plants_path+'*'+type)),dtype=object)
+    # create a dictionary for the CSV 
+    csv_dict = {'plant_name'=[], 'slice'=[], 'vessle_num'=[], 'surface'=[], 'diameter'=[], 'x-coordinate'=[], 'y-coordinate'=[]}
+
+    # list all XML files to get plant names and voxel sizes
+    xml_paths_l = sorted(glob.glob(living_plants_path+'**\\*.xml))
+    xml_paths_f = sorted(glob.glob(flushed_plants_path+'**\\*.xml))
 
     # set device
     if not torch.cuda.is_available():
@@ -15,31 +21,77 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load models and send to GPU
-    model_l = torch.load(models_path+'model_l')
-    model_f = torch.load(models_path+'model_f')
-    model_l.to(device)
-    model_f.to(device)
+    model = torch.load(models_path+'model.pickle')
+    model.to(device)
 
-    # predict living plants embolized area
-    model_l.eval()
-    # accuracies_test = []
-    for img_path in enumerate(imgs_names_l):
-        # load individual image and label and segment them
-        img = cv.imread(img_path, cv.IMREAD_UNCHANGED)/(2**16-1)
-        pred = out_predict(model_l, img, device)
+    # run prediction and analysis for all living plants images in subdirectories
+    for xml_path in xml_paths_l:
+        voxel_size = extract_voxel(xml_path) # extract the voxel size of the scans
+        plant_name = os.path.basename(os.path.dirname(xml_path)) # remove file name then keep only the directory name
+        path = pathlib.Path('.\\output\\living\\'+plant_name) # set plant output directory
+        path.mkdir(parents=True, exist_ok=True) # creates folder if doesn't exist
+        for img_path in np.array(sorted(glob.glob(living_plants_path+f'**{plant_name}\\*'+type)),dtype=object) # go through all sacns in folder
+            slice = extract_name(img_path) # extract slice name
+            img = cv.imread(img_path, cv.IMREAD_UNCHANGED)/(0xFFFF) # load image
+            pred = out_predict(model, img, device) # predict embolized area
 
-    # predict flushed plants embolized area
-    model_f.eval()
-    # accuracies_test = []
-    for img_path in enumerate(imgs_names_f):
-        # load individual image and label and segment them
-        img = cv.imread(img_path, cv.IMREAD_UNCHANGED)/(2**16-1)
-        pred = out_predict(model_f, img, device)
+            # store preicted image overlayed on top of original image
+            pred_ol = np.repeat(img[:, :, np.newaxis], 3, axis=2).astype(np.uint16) # convert image from grayscale to RGB
+            pred_ol[pred==1] = np.array([0xFFFF,0,0]) # overlay prediction over original image
+            cv.imwrite(f'.\\output\\living\\{plant_name}\\{slice}{type}', pred_ol) # store overlayed image
 
-    #########################################################################
-    # TODO:     * save all data into a csv dependant on the file names (?)  #
-    #           * calculate ratios between living and flushed area          #
-    #########################################################################
+            # analyze embolized areas
+            vessels_map, vessels = region_map(pred) # create a regions map for the embolized areas
+            for vessel in range(vessels): # run for each area
+                vessel_pixels = np.argwhere(vessels_map==vessel) # an array of what pixels contain the vessel
+                surface = voxel_size**2 * len(vessel_pixels) # calculate the surface area of the vessel in mm^2 
+                diameter = np.sqrt(4 * surface / np.pi) # calculate the equivalent circle diameter in mm
+                yx = voxel_size * (np.max(vessel_pixels, axis=0) - np.max(vessel_pixels, axis=0)) / 2 # calculate equivalent circle centre coordinate in mm
+
+                # store all data into dictionary
+                csv_dict['plant_name'].append(plant_name)
+                csv_dict['slice'].append(slice)
+                csv_dict['vessle_num'].append(vessel)
+                csv_dict['surface'].append(surface)
+                csv_dict['diameter'].append(diameter)
+                csv_dict['x-coordinate'].append(yx[1])
+                csv_dict['y-coordinate'].append(yx[0])
+
+    # run prediction and analysis for all flushed plants images in subdirectories
+    for xml_path in xml_paths_l:
+        voxel_size = extract_voxel(xml_path) # extract the voxel size of the scans
+        plant_name = os.path.basename(os.path.dirname(xml_path)) # remove file name then keep only the directory name
+        path = pathlib.Path('.\\output\\flushed\\'+plant_name) # set plant output directory
+        path.mkdir(parents=True, exist_ok=True) # creates folder if doesn't exist
+        for img_path in np.array(sorted(glob.glob(flushed_plants_path+f'**{plant_name}\\*'+type)),dtype=object) # go through all sacns in folder
+            slice = extract_name(img_path) # extract slice name
+            img = cv.imread(img_path, cv.IMREAD_UNCHANGED)/(0xFFFF) # load image
+            pred = out_predict(model, img, device) # predict embolized area
+
+            # store preicted image overlayed on top of original image
+            pred_ol = np.repeat(img[:, :, np.newaxis], 3, axis=2).astype(np.uint16) # convert image from grayscale to RGB
+            pred_ol[pred==1] = np.array([0xFFFF,0,0]) # overlay prediction over original image
+            cv.imwrite(f'.\\output\\flushed\\{plant_name}\\{slice}{type}', pred_ol) # store overlayed image
+
+            # analyze embolized areas
+            vessels_map, vessels = region_map(pred) # create a regions map for the embolized areas
+            for vessel in range(vessels): # run for each area
+                vessel_pixels = np.argwhere(vessels_map==vessel) # an array of what pixels contain the vessel
+                surface = voxel_size**2 * len(vessel_pixels) # calculate the surface area of the vessel in mm^2 
+                diameter = np.sqrt(4 * surface / np.pi) # calculate the equivalent circle diameter in mm
+                yx = voxel_size * (np.max(vessel_pixels, axis=0) - np.max(vessel_pixels, axis=0)) / 2 # calculate equivalent circle centre coordinate in mm
+
+                # store all data into dictionary
+                csv_dict['plant_name'].append(plant_name+'_dry')
+                csv_dict['slice'].append(slice)
+                csv_dict['vessle_num'].append(vessel)
+                csv_dict['surface'].append(surface)
+                csv_dict['diameter'].append(diameter)
+                csv_dict['x-coordinate'].append(yx[1])
+                csv_dict['y-coordinate'].append(yx[0])
+
+    # create CSV from dictionary
+    pd.to_csv('.\\output\\analyzed_data.csv', pd.DataFrame.from_dict(csv_dict))
 
 #############################
 # Command line Help methods #
@@ -70,6 +122,39 @@ def help():
 ###################
 # Support methods #
 ###################
+
+# A metod the extrac the voxel value of the scans
+def extract_voxel(xml_path):
+    '''
+    A method to extrac the voxel value of the scans
+
+    Input:
+    :xml_path: a string of the path name of the XML file from the scan
+    
+    Output:
+    :voxel_size: float of the voxel size
+    '''
+    # extract voxel size from XML file
+    tree = ET.parse(xml_path) # get XML tree from file
+    root = tree.getroot() # get the root of the XML tree
+    voxel_size = root[0][1][0].attrib['X'] # get <conebeam\volume_acquisition\voxelSize['X']>
+
+    return voxel_size
+
+
+# A method to exrtact just the file name from a path
+def extract_name(path):
+    '''
+    A method to reove folder prefix and file type suffix from file full names
+    Input:
+    :path: The full path of the file including folders and file type
+    Output:
+    :name: The stripped down file name
+    '''
+    head, tail = ntpath.split(path)
+    head = tail or ntpath.basename(head)
+    return os.path.splitext(head)[0]
+
 
 # A method that extend and mirror the edges on an image to prepare it to the model
 def extend_mirror(img, out_size):
@@ -124,6 +209,7 @@ def out_predict(model, img, device, in_size=572, out_size=388, extend=True):
     Output:
     :pred: 2D numpy array with the prediction
     '''
+    model.eval() # set model for prediction
     if extend:
         ext = in_size - out_size # extand-mirror overall length
     else:
@@ -152,7 +238,6 @@ def out_predict(model, img, device, in_size=572, out_size=388, extend=True):
         pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.fmax(prediction,pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size]) # check for class max lieklihood for each overlapping pixel
         pred[start[0]:start[0]+out_size, start[1]:start[1]+out_size] = np.argmax(pred_max_logit[:,start[0]:start[0]+out_size, start[1]:start[1]+out_size],axis=0) # determine class of segment's pixels
     return pred # convert to np.array and return
-
 
 ########################
 # Command line handler #
