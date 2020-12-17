@@ -257,106 +257,82 @@ def out_predict(model, img, device, in_size=572, out_size=388, extend=True):
 # U_NET pytorch architecture and subcomponents #
 ################################################
 
-class DoubleConv(nn.Module):
-    """(convolution => [BN] => ReLU) * 2"""
-
-    def __init__(self, in_channels, out_channels):
-        super().__init__()
-        self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-        
-    def forward(self, x):
-        return self.double_conv(x)
-
-class Down(nn.Module):
-    """Downscaling with maxpool then double conv"""
-
-    def __init__(self, in_channels, out_channels):
-        super().__init__()
-        self.maxpool_conv = nn.Sequential(
-            nn.MaxPool2d(2),
-            DoubleConv(in_channels, out_channels)
-        )
-
-    def forward(self, x):
-        return self.maxpool_conv(x)
-
-
-class Up(nn.Module):
-    """Upscaling and conv"""
-
-    def __init__(self, in_channels, out_channels):
-        super().__init__()
-        self.up_conv = nn.Sequential(
-            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
-            nn.ZeroPad2d((0,1,0,1)),
-            nn.Conv2d(in_channels, out_channels, kernel_size=2)
-        )
-        # self.up_conv = nn.ConvTranspose2d(in_channels , out_channels, kernel_size=2, stride=2)
-        self.double_conv = DoubleConv(in_channels, out_channels)
-
-    def forward(self, x1, x2):
-        # up-conv input
-        x1 = self.up_conv(x1)
-
-        # crop and contatinate
-        diffY = int((x2.size()[2] - x1.size()[2]) // 2)
-        diffX = int((x2.size()[3] - x1.size()[3]) // 2)
-        x2 = x2[:,:,diffY:-diffY, diffX:-diffX]
-        x = torch.cat([x2, x1], dim=1)
-        return self.double_conv(x)
-
-
-class OutConv(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(OutConv, self).__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
-
-    def forward(self, x):
-        return self.conv(x)
-
-class U_net(nn.Module):
+# UNet definitions
+class UNet(nn.Module):
     def __init__(self):
-        super(U_net, self).__init__()
+        super(UNet, self).__init__()
+        
+        # functions for going down the U
+        self.max_pool_2x2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.d_double_conv_1 = double_conv(1, 64)
+        self.d_double_conv_2 = double_conv(64, 128)
+        self.d_double_conv_3 = double_conv(128, 256)
+        self.d_double_conv_4 = double_conv(256, 512)
+        self.d_double_conv_5 = double_conv(512, 1024)
+        
+        # functions for going up the U
+        self.up_trans_4 = nn.ConvTranspose2d(in_channels=1024, out_channels=512, kernel_size=2, stride=2)        
+        self.u_double_conv_4 = double_conv(1024, 512)
+        self.up_trans_3 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=2, stride=2)
+        self.u_double_conv_3 = double_conv(512, 256)
+        self.up_trans_2 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=2, stride=2)
+        self.u_double_conv_2 = double_conv(256, 128)
+        self.up_trans_1 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=2, stride=2)
+        self.u_double_conv_1 = double_conv(128, 64)
+        
+        self.out = nn.Conv2d(in_channels=64, out_channels=2, kernel_size=1)
+        
+    def forward(self, image):
+        '''makes the 388x388 prediction with the model, image must be 572x572pixels'''
+        
+        # Going down the U
+        d1 = self.d_double_conv_1(image) # first "level"
+        # print(x1.size())
+        x = self.max_pool_2x2(d1)
+        d2 = self.d_double_conv_2(x) # second
+        x = self.max_pool_2x2(d2)
+        d3 = self.d_double_conv_3(x) # third
+        x = self.max_pool_2x2(d3)
+        d4 = self.d_double_conv_4(x) # fourth
+        x = self.max_pool_2x2(d4)
+        x = self.d_double_conv_5(x) # last layer (fifth) : no max pool
+        
+        # Going up the U
+        x = self.up_trans_4(x)
+        d4 = crop_img(tensor=d4, target_tensor=x) #crop to copy
+        x = self.u_double_conv_4(torch.cat([d4, x], 1))
+        
+        x = self.up_trans_3(x)
+        d3 = crop_img(tensor=d3, target_tensor=x)
+        x = self.u_double_conv_3(torch.cat([d3, x], 1))
+        
+        x = self.up_trans_2(x)
+        d2 = crop_img(tensor=d2, target_tensor=x)
+        x = self.u_double_conv_2(torch.cat([d2, x], 1))
+        
+        x = self.up_trans_1(x)
+        d1 = crop_img(tensor=d1, target_tensor=x)
+        x = self.u_double_conv_1(torch.cat([d1, x], 1))
+        
+        x = self.out(x)
+        return x
+    
+# some functions so reduce redunduncy
+def double_conv(nb_in_channels, nb_out_channels): # Used for every descending step
+    conv = nn.Sequential(
+        nn.Conv2d(nb_in_channels, nb_out_channels, kernel_size=3),
+        nn.ReLU(inplace=True),
+        nn.Conv2d(nb_out_channels, nb_out_channels, kernel_size=3),
+        nn.ReLU(inplace=True),
+    )
+    return conv
 
-        self.inc = DoubleConv(1, 64)
-        self.down1 = Down(64, 128)
-        self.down2 = Down(128, 256)
-        self.down3 = Down(256, 512)
-        self.down4 = Down(512, 1024)
-        self.up1 = Up(1024, 512)
-        self.up2 = Up(512, 256)
-        self.up3 = Up(256, 128)
-        self.up4 = Up(128, 64)
-        self.out = OutConv(64, 2)
-        self.init_wb()
-
-    def forward(self, x):
-        x1 = self.inc(x)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x5 = self.down4(x4)
-        x = self.up1(x5, x4)
-        x = self.up2(x, x3)
-        x = self.up3(x, x2)
-        x = self.up4(x, x1)
-        logits = self.out(x)
-        return logits
-
-    def init_wb(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.normal_(m.weight, std=np.sqrt(2/np.prod(m.weight.shape[1:])))
-                if m.bias is not None:
-                    torch.nn.init.zeros_(m.bias)
-
+def crop_img(tensor, target_tensor): # Used for copy and crop between descending and ascending
+    target_size = target_tensor.size()[2] # NB they are square so .size[2]=.size[3]
+    tensor_size = tensor.size()[2]
+    delta = tensor_size - target_size #target is always smaller
+    pix_crop = delta // 2
+    return tensor[:, :, pix_crop:tensor_size-pix_crop, pix_crop:tensor_size-pix_crop]
 
 ########################
 # Command line handler #
