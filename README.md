@@ -67,6 +67,8 @@ The folowing packages and tools were used and needed to run the repository:\
 To generate the labels, open the notebook named "generate_labels.ipynb". In the notebook you will need to set the directories to which you want to store the labels to, select a CSV file containing the images you want to label with the analysis like ./csv_files/data_overview.csv for example, and select a zip file that contain all the EMB.csv files that contains at least all the images you wish to label, like ./csv_files/emb_csv_files.zip.
 The CSV file needs to contain the plant_name (e.g. 1-fs-08), scan_nb (e.g. living), image_nb (e.g. 750), voxel_size (e.g. 0.007005), session (e.g. session1), and iths pathname.
 
+![image](https://user-images.githubusercontent.com/58084722/102490142-b9a34f80-406e-11eb-8a8b-ef346c6f1bdf.png)
+
 ### Step 2: Generate model
 
 
