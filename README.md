@@ -28,13 +28,26 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |- other_models_nb/
 |       > A folder that contains notebooks used to create the other notebooks discussed in the report.
 |
+|- csv_files
+|       > A folder containing the CSV files used to select the images used for the labels.
+|       |
+|       |---- microCT_data_s1.csv
+|               > A file with the analyzed data from all the good samples of Session 1
+|       |
+|       |---- microCT_data_s2.csv
+|               > A file with the analyzed data from all the good samples of Session 2
+|
 |- models\
         |---- model.pickle
                 > the final model pickle file
 ```
-## Requirements
 
-The folowing packages and tools were used and needed to run the repository:
+## Getting started
+First ensure you have the tools and packages listed under. Then follow the steps to create the labels, model and finally final outputs.
+
+### Requirements
+
+The folowing packages and tools were used and needed to run the repository:\
 [python](https://www.python.org/)==3.7 \
 [ipython](https://ipython.org/notebook.html0==7.19.0 
 
@@ -48,6 +61,16 @@ The folowing packages and tools were used and needed to run the repository:
 [matplotlib](https://matplotlib.org/)==3.3.2 \
 [pandas](https://pandas.pydata.org/)==1.1.4 \
 [seaborn](https://seaborn.pydata.org/)==0.11.0 
+
+### Step 1: Generate label images
+
+To generate the labels, open the notebook named "generate_labels.ipynb". In the notebook you will need to set the directories to which you want to store the labels to and select a CSV file containing the images you want to label with the analysis like ./.
+The CSV file needs to contain 
+
+### Step 2: Generate model
+
+
+### Step 3: Predict vessels and generate analysis
 
 ### Jupyter notebooks
 
