@@ -11,25 +11,25 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 ![unet](https://user-images.githubusercontent.com/58084722/102468257-94ecaf00-4051-11eb-94b3-3d6b34b4474a.png)
 
 ## Ropository structure
-./
-|---- run.py
-|       > An executeable py file to run the model on data. More description below.
-|
-|---- helpers.py
-|       > A python file that contains all the methods used for the different notebooks
-|
-|---- generate_labels.ipynb
-|       > A Jupyter notebook that generates the label images for the images
-|
-|---- generate_model.ipynb
-|       > A Jupyter notebook that generates the final model used 
-|
-|- other_models_nb/
-|       > A folder that contains notebooks used to create the other notebooks discussed in the report
-|
-|- models\
-        |---- model.pickle
-                > the final model pickle file
+./<br />
+|---- run.py<br />
+|       > An executeable py file to run the model on data. More description below.<br />
+|<br />
+|---- helpers.py<br />
+|       > A python file that contains all the methods used for the different notebooks<br />
+|<br />
+|---- generate_labels.ipynb<br />
+|       > A Jupyter notebook that generates the label images for the images<br />
+|<br />
+|---- generate_model.ipynb<br />
+|       > A Jupyter notebook that generates the final model used <br />
+|<br />
+|- other_models_nb/<br />
+|       > A folder that contains notebooks used to create the other notebooks discussed in the report<br />
+|<br />
+|- models\<br />
+        |---- model.pickle<br />
+                > the final model pickle file<br />
 
 ## Requirements
 
