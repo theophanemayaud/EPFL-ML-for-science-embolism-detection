@@ -250,7 +250,7 @@ def confusion(pred, test_labels, data_type):
     data_type: string either tensor or numpy, indicating type on pred and test_labels
     
     Return:
-    TP, FP, TN, TP rates as ratio over 1
+    TP, TN, FP, FN rates as ratio over 1
     '''
     if data_type == "torch":
         pred_, lbls_ = torch.argmax(pred,dim=1).view(-1), test_labels.view(-1)
