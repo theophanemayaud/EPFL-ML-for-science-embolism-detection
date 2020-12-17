@@ -36,10 +36,10 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 
 The folowing packages and tools were used and needed to run the repository:
 [python](https://www.python.org/)==3.7 \
-[ipython](https://ipython.org/notebook.html0==7.19.0 \
+[ipython](https://ipython.org/notebook.html0==7.19.0 
 
 [glob2](https://pypi.org/project/glob2/)==0.7 \
-[pathlib2](https://pypi.org/project/pathlib2/)==2.3.5 \
+[pathlib2](https://pypi.org/project/pathlib2/)==2.3.5 
 
 [opencv-python](https://opencv.org/)==4.4.0.46 \
 [numpy](https://numpy.org/)==1.18.5 \
@@ -47,7 +47,7 @@ The folowing packages and tools were used and needed to run the repository:
 [torch](https://pytorch.org/)==1.7.1 \
 [matplotlib](https://matplotlib.org/)==3.3.2 \
 [pandas](https://pandas.pydata.org/)==1.1.4 \
-[seaborn](https://seaborn.pydata.org/)==0.11.0 \
+[seaborn](https://seaborn.pydata.org/)==0.11.0 
 
 ### Jupyter notebooks
 
