@@ -81,9 +81,19 @@ To generate the model, open the notebook named "generate_model.ipynb". In the no
 ### Step 3: Predict vessels and generate analysis
 
 To generate the predictions using the generated model, first ensure the model's name is "model.pkl". Then you can open the command prompt from the folder (easiest method is to type cmd in the folder bar as seen in the image below).
+
+![image](https://user-images.githubusercontent.com/58084722/102499256-3fc59300-407b-11eb-8bca-e4526421b14a.png)
+
+To run the predictor, the user needs to insert at least the two paths; the paths of the top folders where the living plants images are and the flushed plants images are.
+Currently, the script has two command line options:
+* The user can change the path to the models dir by using the "-model <model_path>" option. Where model_path can be any local path relative or not.
+* The user can change the image type of the images by using the "-type <img_type>" option. Where img_type can be any image type supported by OpenCV (.TIF, .PNG, etc.)
+
 ```
-python
+python run.py /PERL/invites/session1/living/ /PERL/invites/session1/flushed/
 ```
+
+The outputs of the script are all stored in a folder named "outputs" in the same folder where the script is. The folder contains a floders named "living" and "flushed" that respectively contain overlayed versions of all predicted images. Furthermore, in "output", a .CSV file is generated called "analyzed_data.csv". The file contains analysis of every detected vessel in all of the inputed images.
 
 ## References
 <a id="1">[1]</a> O. Ronneberger, P. Fischer, & T. Brox, U-Net: Convolutional Networks for Biomedical Image Segmentation, arXiv, 2015
