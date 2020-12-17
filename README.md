@@ -73,51 +73,17 @@ You can then run the run the first three cells ("imports", "Select data, CSV fil
 
 ### Step 2: Generate model
 
-To generate the model, open the notebook named "generate_model.ipynb". In the notebook you first need to set the parameter "env" to specify if the notebook is ran on Google Cloud Platform, Google Colab or lacally. The parameter should be set to "gcp", "colab" or "local" respectively. Also, the parameter "train_or_load" could be adjusted to train, load or resume the training of a model with the keywords "train", "load" or "resume", respectively. Then, you need to set the folders in which the training and validation data is stored and the ones where the training and testing label images are stored relative to the root folder of the notebook. Finally, add the path to "helpers.py".
+To generate the model, open the notebook named "generate_model.ipynb". In the notebook you first need to set the parameter "env" to specify if the notebook is ran on Google Cloud Platform, Google Colab or lacally. The parameter should be set to "gcp", "colab" or "local" respectively. Also, the parameter "train_or_load" could be adjusted to train, load or resume the training of a model with the keywords "train", "load" or "resume", respectively. Then, you need to set the folders in which the training and validation data is stored and the ones where the training and testing label images are stored relative to the root folder of the notebook, and where you wish the model to be saved. Finally, add the path to "helpers.py".
+
+![image](https://user-images.githubusercontent.com/58084722/102497449-f2482680-4078-11eb-92c0-545be27361f9.png)
 
 
 ### Step 3: Predict vessels and generate analysis
 
-### Jupyter notebooks
-
-- xxx.ipynb
-> descrip.
-
-- th_how_to_use_png_masks.ipynb
-> Small tutorial for easier use of masks in other places.
-
-- th_ROI-EMB_toLabelLayers.ipynb
-> Notebook going through the process of understanding the csv mask data provided, and converting it to png mask files
-
-- th_matchFilePathToAnalysedPictures.ipynb
-> Notebook in which we go through figuring out the provided images structure, and matching them to the data we have labels for.
-
-- th_copyAllValidPicturesToLocal.ipynb
-> Small file to copy all images from the Lab's drive to local folder for faster access.
-
-## Data folder and files
-
-- th_csv_labels (folder)
-> Contains the csv provided mask files, information about them and the generated png masks/labels to be used in training
-
-    - analysis_overview_df_with_pathnames.csv
-   > Table containing one row per analysed plant, with the session, name, image number used, and voxel (pixel) size for the image.
-    
-    - csv_files_emb_roi.zip
-   > Zipped folder containing the provided ROI and embolism selection in csv files.
-   
-    - png_masks_emb.zip
-   > Zipped folder containing the generated png embolism masks/labels.
-
-    - png_masks_roi.zip
-   > Zipped folder containing the generated ROI embolism masks/labels.
-   
-- th_analysedimages (folder)
-> Contains provided tif images that were analysed and for which we have label data. Images are re-named to the standardized Session[x]\_[flushed/living]\_[plant name]_[image number.tif_
-
-- th_sampledata (folder)
-> Contains some example tif and csv provided files. These are used in th_ROI-EMB_toLabelLayers.ipynb th_matchFilePathToAnalysedPictures.ipynb and th_copyAllValidPicturesToLocal.ipynb to get a hold of the whole dataset and implement the methods for all of them.
-
+To generate the predictions using the generated model, first ensure the model's name is "model.pkl". Then you can open the command prompt from the folder (easiest method is to type cmd in the folder bar as seen in the image below).
+```
+python
+```
 
 ## References
 <a id="1">[1]</a> O. Ronneberger, P. Fischer, & T. Brox, U-Net: Convolutional Networks for Biomedical Image Segmentation, arXiv, 2015
