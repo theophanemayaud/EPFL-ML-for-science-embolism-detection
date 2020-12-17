@@ -82,7 +82,7 @@ To generate the model, open the notebook named "generate_model.ipynb". In the no
 
 To generate the predictions using the generated model, first ensure the model's name is "model.pkl". Then you can open the command prompt from the folder (easiest method is to type cmd in the folder bar as seen in the image below).
 
-![image](https://user-images.githubusercontent.com/58084722/102499256-3fc59300-407b-11eb-8bca-e4526421b14a.png)
+![image](https://user-images.githubusercontent.com/58084722/102501734-0e9a9200-407e-11eb-9071-5c31a4d9eee8.png)
 
 To run the predictor, the user needs to insert at least the two paths; the paths of the top folders where the living plants images are and the flushed plants images are.
 Currently, the script has two command line options:
