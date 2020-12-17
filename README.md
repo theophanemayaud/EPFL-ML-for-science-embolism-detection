@@ -93,8 +93,9 @@ Currently, the script has two command line options:
 python run.py /PERL/invites/session1/living/ /PERL/invites/session1/flushed/
 ```
 
-The outputs of the script are all stored in a folder named "outputs" in the same folder where the script is. The folder contains a floders named "living" and "flushed" that respectively contain overlayed versions of all predicted images. 
+The outputs of the script are all stored in a folder named "outputs" in the same folder where the script is. The folder contains a floders named "living" and "flushed" that respectively contain overlayed versions of all predicted images, as seen below. 
 
+![image](https://user-images.githubusercontent.com/58084722/102501411-b4013600-407d-11eb-8bca-0a3650e281b7.png)
 
 
 Furthermore, in "output", a .CSV file is generated called "analyzed_data.csv". The file contains analysis of every detected vessel in all of the inputed images.
