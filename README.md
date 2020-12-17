@@ -10,16 +10,31 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 
 ![unet](https://user-images.githubusercontent.com/58084722/102468257-94ecaf00-4051-11eb-94b3-3d6b34b4474a.png)
 
-## Files for final submission
+## Ropository structure
+./
+|---- run.py
+|       > An executeable py file to run the model on data. More description below.
+|
+|---- helpers.py
+|       > A python file that contains all the methods used for the different notebooks
+|
+|---- generate_labels.ipynb
+|       > A Jupyter notebook that generates the label images for the images
+|
+|---- generate_model.ipynb
+|       > A Jupyter notebook that generates the final model used 
+|
+|- other_models_nb/
+|       > A folder that contains notebooks used to create the other notebooks discussed in the report
+|
+|- models\
+        |---- model.pickle
+                > the final model pickle file
 
-In this folder you will find two main files :
-- xx.py
->  descriptions ...
+## Requirements
 
-- xx.py
-> descriptions.
+The folowing packages and tools are the ones needed to run the repository:
 
-## Files in which we tested different approaches
 
 ### Jupyter notebooks
 
@@ -37,14 +52,6 @@ In this folder you will find two main files :
 
 - th_copyAllValidPicturesToLocal.ipynb
 > Small file to copy all images from the Lab's drive to local folder for faster access.
-
-### Python files
-
-- xxxx.py
-> descript
-
-- helpers.py
-> Contains functions that are reused through multiple other files, like image pre-processing, conversions or other repetitive things.
 
 ## Data folder and files
 
