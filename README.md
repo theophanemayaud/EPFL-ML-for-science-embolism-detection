@@ -31,11 +31,11 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |- csv_files
 |       > A folder containing the CSV files used to select the images used for the labels.
 |       |
-|       |---- microCT_data_s1.csv
-|               > A file with the analyzed data from all the good samples of Session 1
+|       |---- data_overview.csv
+|       |       > A file with the analyzed data from all the good samples
 |       |
-|       |---- microCT_data_s2.csv
-|               > A file with the analyzed data from all the good samples of Session 2
+|       |---- emb_csv_files.zip
+|               > A zip file with the EMB.csv files of all plants
 |
 |- models\
         |---- model.pickle
@@ -64,8 +64,8 @@ The folowing packages and tools were used and needed to run the repository:\
 
 ### Step 1: Generate label images
 
-To generate the labels, open the notebook named "generate_labels.ipynb". In the notebook you will need to set the directories to which you want to store the labels to and select a CSV file containing the images you want to label with the analysis like ./.
-The CSV file needs to contain 
+To generate the labels, open the notebook named "generate_labels.ipynb". In the notebook you will need to set the directories to which you want to store the labels to, select a CSV file containing the images you want to label with the analysis like ./csv_files/data_overview.csv for example, and select a zip file that contain all the EMB.csv files that contains at least all the images you wish to label, like ./csv_files/emb_csv_files.zip.
+The CSV file needs to contain the plant_name (e.g. 1-fs-08), scan_nb (e.g. living), image_nb (e.g. 750), voxel_size (e.g. 0.007005), session (e.g. session1), and iths pathname.
 
 ### Step 2: Generate model
 
