@@ -25,8 +25,9 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |---- generate_model.ipynb
 |       > A Jupyter notebook that generates the final model used.
 |
-|- other_models_nb/
-|       > A folder that contains notebooks used to create the other notebooks discussed in the report.
+|- other_models_code_and_files/
+|       > A folder that contains notebooks used to create the other notebooks discussed in the report, and also raw image files used to train, other saved model parameters, and multiple attempts that lead to the final result.
+
 |
 |- csv_files
 |       > A folder containing the CSV files used to select the images used for the labels.
