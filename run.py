@@ -22,7 +22,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load models and send to GPU
-    model = torch.load(models_path+'model.pickle')
+    model = torch.load(models_path+'model.pkl')
     model.to(device)
 
     # run prediction and analysis for all living plants images in subdirectories
