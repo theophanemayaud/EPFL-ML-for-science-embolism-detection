@@ -50,7 +50,7 @@ First ensure you have the tools and packages listed under. Then follow the steps
 
 The folowing packages and tools were used and needed to run the repository:\
 [python](https://www.python.org/)==3.7 \
-[ipython](https://ipython.org/notebook.html0==7.19.0 
+[ipython](https://ipython.org/notebook.html0)==7.19.0 
 
 [glob2](https://pypi.org/project/glob2/)==0.7 \
 [pathlib2](https://pypi.org/project/pathlib2/)==2.3.5 
