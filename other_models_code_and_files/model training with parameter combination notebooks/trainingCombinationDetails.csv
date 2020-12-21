@@ -1,0 +1,42 @@
+﻿train images;nb epochs;loss (criterion);optimizer;test images;learning rate;train time (min);training notes;test mean err;Test note;testing on training images mean surf error;Test on train notes;max batch size;Colonne1;sec per image
+30 first of dataset;30;CrossEntropy;Adam;30 from 300 to 330;1,00E-04;Unknown;results look ok ish, with a lot of bark;-949,69%;one big outlier negative, but overall it really underestimates;-47,44%;looks ok but min -175% so… not great ! Overall it under-estimates;;;#VALEUR!
+2 first of dataset;500;CrossEntropy;Adam;30 from 300 to 330;1,00E-04;33;loss gets below 0.05 ~300 epoch, below 0.1 in 150, and below 1 in 50 already;-175,41%;Also a lot of bark. All embolism regions seem detected, but not all of their surface… Values  most around 0% (17 of 30), otherwise equally distributed to -1200%;-10,17%;both results look very good !;;;1,98
+30 first of dataset;500;CrossEntropy;Adam;30 from 300 to 330;1,00E-04;;at epoc 200 loss is around 0.0002… emb surf pred error 0.4257…;-29,00%;between -300% to 100% but most (17) around 0%;-0,07%;very good results, from -2% to 1% with 10 at 0%;1;Colab;
+100 first images;25;CrossEntropy;Adam;50 from 300 to 350;1,00E-04;400;it was taking too long so stopped in the middle;-23403,25%;way understimating but still test data doesn't look crazy, just a lot of not detected areas.;-3715,83%;all look promising, one very very low outlier that skews distribution. Underestimating but not too crazy. And not a lot of surrounding or bark.;;GCP;9,6
+30 first of dataset;30;CrossEntropy;Adam;30 from 300 to 330;1,00E-03;93;unknown;-162,08%;distributed from -1000% to 200%, most around 0% though (15 of 30);-33,16%;looks not so bad, a lot of bark but embolism regions are pretty well detected ;;GCP;6,2
+30 first of dataset;30;CrossEntropy;Adam;30 from 300 to 330;1,00E-02;133;everything is black : strange because loss seems to be low quite fast : around 0.15;-855296,67%;you get the idea : all black;-855296,67%;all black;;GCP;8,866666667
+6 images : 3 dead 3 living and 3 specy each : all session 1;500;CrossEntropy;Adam;" 159
+to 357 # all Session 2 images 
+";1,00E-04;62;;-11364,59%;very big outliers (197 images of session 2), ;-290,55%;for 6 train images the results are not so good, would probably need more epochs !;5;GCP;
+160 images of session 1;500;CrossEntropy;Adam;197 images of session 2;1,00E-04;706;NB : starting from saved model of 500 epochs of 6 images of session 1. Loss progression kept going down lower and lower through epochs, with more noise at the end but still going down clearly;-352,68%;Very low outliers but most seem close to 0. Excluding outliers below -500% we get  180 images with mean of -31%, most underestimating, and most from -75% to 25%;-8,03%;distribution is under-estimating, all below 0 and most between -25% and 0%';6;GCP Nvidia V100;0,5295
+160 images of session 1;50 on top of 500 from loaded model;CrossEntropy;Adam;197 images of session 2;1,00E-05;425;NB : starting from saved model of 500 epochs of 160 images of session 1, but now training on labels created by alon via image analysis;3,24%;excluding 7 very large errors where the mask was wrong, we have a very good average, but the overall distribution is around -50% to +50%;;;6;GCP Nvidia V100;
+30 first of dataset;30;CrossEntropy;SGD no inertia;30 from 300 to 330;1,00E-04;Unknown;loss seemed to go down fast and then be around 0.1, reducing every time. But results seem all zero, so very bad !;-855296,67%;thousands of percent negative;-4449740,00%;very negative…;;;
+30 first of dataset;30;CrossEntropy;SGD no inertia;30 from 300 to 330;1,00E-03;NA;Loss diverges almost immediately;NA;NA;NA;NA;;;
+30 first of dataset;30;CrossEntropy;SGD no inertia;30 from 300 to 330;1,00E-05;43;while training, losses go down slowly and are like 0.1;-1275,00%;way under estimated, but still a few values above and near 0 ;-301,47%;Between -1'000% and 0% or a little above, doesn't look too bad;;;2,866666667
+2 first of dataset;500;CrossEntropy;SGD no inertia;30 from 300 to 330;1,00E-05;32;Loss below 0.1 as soon as 200 epochs, but staying there. Belo 1 already at 50 epochs;-60,38%;error from -3500% to 3000% but centered around -500% and 500%... ;-53,71%;looks to detect bark.;;;1,92
+30 first of dataset;30;CrossEntropy;SGD inertia 0.9;30 from 300 to 330;1,00E-04;Unknown;Loss goes down very fast and then very slowly but is around 0.2 Results are all black though on training and testing images;-855296,67%;Seems all black…;-4449740,00%;Seems all black…;;;
+2 first of dataset;100;CrossEntropy;SGD inertia 0.9;30 from 300 to 330;1,00E-04;Unknown;all predictions seem all black although loss goes from very high thousands to under 1 very quickly, and then slighly moves lower and lower…;-855296,67%;all seem black;-3124950,00%;all seem black…;;;
+2 first of dataset;100;CrossEntropy;SGD inertia 0.9;30 from 300 to 330;1,00E-06;Unknown;printing all images during training as lr=1e-4 abd 1e-5 were all black… Now not all seem black !;1174,50%;a lot of other stuff predicted : bark, surrounding, but still looks not terrible. All values overestimate, from 100% to 10000%. Mostly under 3500% though;91,48%;very clearly embolism regions selected, but a lot of bark and some surrounding.;;;
+30 first of dataset;30;CrossEntropy;SGD inertia 0.9;30 from 300 to 330;1,00E-06;44;loss goes to 0.1 and ppredictions look meaningfull, but quite underpredicted and with a lot of bark;-7992,30%;very low mean because of crazy outliers. But they look very low anyway, all underpredicted, with very few predicted pixels. Still, general shape is visible, and mostly the embolisms;-806,17%;most between -500% and 0%, they look pretty thin, and lowest is -3000%;;;2,933333333
+2 first of dataset;500;CrossEntropy;SGD inertia 0.9;30 from 300 to 330;1,00E-06;33;loss around 0.1 at the end, more 0.15 around 250 epoch and 0.2-0.3 at 50;537.7080921414951%;embolism regions are not detected to their complete surface, but still detecting a lot of outside stuff sur ends up overestimating !!! Most results between -100% and 1000% (15 between 0-100%) , but outliers at 1500% and 6500%.;34,34%;looks good but a lot of bark and embolism regions not detected in all surface;;;1,98
+30 first of dataset;70;CrossEntropy;SGD inertia 0.9;30 from 300 to 330;1,00E-06;200;very long to train, planned 500 epochs but stopped at 70. Loss below 0.1;178,86%;mostly around -500% to 500%, a lot of surrounding and embolism areas not fully detected.;-27,87%;looks pretty good but still from -150% to 200% …;;;5,71
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
