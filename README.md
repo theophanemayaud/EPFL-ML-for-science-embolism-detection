@@ -33,7 +33,9 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |- images/
 |       > A folder that contains Session 1 and 2 images we used for training and testing
 |       Only images that were specifically selected as useable are there, as per the 
-|       csv_files/data_overview.csv file.
+|       csv_files/data_overview.csv file. These are renamed so all the information
+|       about each image is in the filename itself, but otherwise they are unchanged
+|       from the images output by the lab scanner and on the lab EPFL drive.
 |
 |- labels/
 |       > A folder that contains Session 1 and 2 labels we generated with the 
