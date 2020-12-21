@@ -13,8 +13,10 @@ def main():
     csv_dict = {'plant_name':[], 'slice':[], 'vessle_num':[], 'surface':[], 'diameter':[], 'x-coordinate':[], 'y-coordinate':[]}
 
     # list all XML files to get plant names and voxel sizes
-    xml_paths_l = sorted(glob.glob(path_l+'**\\*.xml'))
-    xml_paths_f = sorted(glob.glob(path_f+'**\\*.xml'))
+    xml_paths_l = sorted(glob.glob(path_l+'**/*.xml'))
+    xml_paths_f = sorted(glob.glob(path_f+'**/*.xml'))
+    print(f"Found {len(xml_paths_l)} living images")
+    print(f"Found {len(xml_paths_f)} flushed images")
 
     # set device
     if not torch.cuda.is_available():
@@ -22,24 +24,29 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load models and send to GPU
-    model = torch.load(models_path+'model.pkl')
+    # only model parameters were saved, we must define model then load parameters
+    model = UNet() 
+    checkpoint = torch.load(models_path+'model.pkl')
+    model.load_state_dict(checkpoint['model_state_dict'])
     model.to(device)
 
     # run prediction and analysis for all living plants images in subdirectories
+    print(f"Now making predictions on living images")
     for xml_path in xml_paths_l:
         voxel_size = extract_voxel(xml_path) # extract the voxel size of the scans
         plant_name = os.path.basename(os.path.dirname(xml_path)) # remove file name then keep only the directory name
-        path = pathlib.Path('.\\output\\living\\'+plant_name) # set plant output directory
+        path = pathlib.Path('./output/living/'+plant_name) # set plant output directory
         path.mkdir(parents=True, exist_ok=True) # creates folder if doesn't exist
-        for img_path in np.array(sorted(glob.glob(path_l+f'**{plant_name}\\*'+img_type)),dtype=object): # go through all sacns in folder
+        for img_path in np.array(sorted(glob.glob(path_l+f'**{plant_name}/*'+img_type)),dtype=object): # go through all sacns in folder
+            print(f"    Predicting image {img_path}")
             slice_name = extract_name(img_path) # extract slice name
-            img = cv.imread(img_path, cv.IMREAD_UNCHANGED)/(0xFFFF) # load image
+            img = cv.imread(img_path, cv.IMREAD_UNCHANGED) # load image
             pred = out_predict(model, img, device) # predict embolized area
 
             # store preicted image overlayed on top of original image
             pred_ol = np.repeat(img[:, :, np.newaxis], 3, axis=2) # convert image from grayscale to RGB
-            pred_ol[pred==1] = np.array([0xFFFF,0,0]) # overlay prediction over original image
-            cv.imwrite(f'.\\output\\living\\{plant_name}\\{slice_name}{img_type}', pred_ol) # store overlayed image
+            pred_ol[pred==1] = np.array([0,0xFFFF,0xFFFF]) # overlay prediction over original image
+            cv.imwrite(f'./output/living/{plant_name}/{slice_name}{img_type}', pred_ol) # store overlayed image
 
             # analyze embolized areas
             vessels_map, vessels = region_map(pred) # create a regions map for the embolized areas
@@ -59,20 +66,22 @@ def main():
                 csv_dict['y-coordinate'].append(yx[0])
 
     # run prediction and analysis for all flushed plants images in subdirectories
+    print(f"Now making predictions on flushed images")
     for xml_path in xml_paths_f:
         voxel_size = extract_voxel(xml_path) # extract the voxel size of the scans
         plant_name = os.path.basename(os.path.dirname(xml_path)) # remove file name then keep only the directory name
-        path = pathlib.Path('.\\output\\flushed\\'+plant_name) # set plant output directory
+        path = pathlib.Path('./output/flushed/'+plant_name) # set plant output directory
         path.mkdir(parents=True, exist_ok=True) # creates folder if doesn't exist
-        for img_path in np.array(sorted(glob.glob(path_f+f'**{plant_name}\\*'+img_type)),dtype=object): # go through all sacns in folder
+        for img_path in np.array(sorted(glob.glob(path_f+f'**{plant_name}/*'+img_type)),dtype=object): # go through all sacns in folder
+            print(f"    Predicting image {img_path}")
             slice_name = extract_name(img_path) # extract slice name
-            img = cv.imread(img_path, cv.IMREAD_UNCHANGED)/(0xFFFF) # load image
+            img = cv.imread(img_path, cv.IMREAD_UNCHANGED) # load image
             pred = out_predict(model, img, device) # predict embolized area
 
             # store preicted image overlayed on top of original image
             pred_ol = np.repeat(img[:, :, np.newaxis], 3, axis=2) # convert image from grayscale to RGB
-            pred_ol[pred==1] = np.array([0xFFFF,0,0]) # overlay prediction over original image
-            cv.imwrite(f'.\\output\\flushed\\{plant_name}\\{slice_name}{img_type}', pred_ol) # store overlayed image
+            pred_ol[pred==1] = np.array([0,0xFFFF,0xFFFF]) # overlay prediction over original image
+            cv.imwrite(f'./output/flushed/{plant_name}/{slice_name}{img_type}', pred_ol) # store overlayed image
 
             # analyze embolized areas
             vessels_map, vessels = region_map(pred) # create a regions map for the embolized areas
@@ -92,8 +101,11 @@ def main():
                 csv_dict['y-coordinate'].append(yx[0])
 
     # create CSV from dictionary
-    pd.DataFrame.from_dict(csv_dict).to_csv('.\\output\\analyzed_data.csv', index=False)
-    print(f'Process complete!!\nThe overlayed living images are in {'.\\output\\living\\<plant_name>'}.\nThe overlayed flushed images are in {'.\\output\\flushed\\<plant_name>'}.\nThe CVS file  is in {.\\output\\analyzed_data.csv})
+    pd.DataFrame.from_dict(csv_dict).to_csv('./output/analyzed_data.csv', index=False)
+    print("Process complete!!")
+    print("The overlayed living images are in ./output/living/<plant_name>")
+    print("The overlayed flushed images are in ./output/flushed/<plant_name>")
+    print("The CVS file  is in ./output/analyzed_data.csv")
 
 
 #############################

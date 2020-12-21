@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<unireconstruction version="1.1" xactrevision=" 11993 Release December 2019 ">
+    <conebeam>
+        <reconstruct rangeMin="-1.2" rangeMax="2.5" format="16 bit Tiff" filter="Tukey" appodizationFilter="Sinus" methode="Filtered Backprojection (Tomography)" yfileformat="16bit Tiff" filterValue="80" iterations="1" appodization="75"/>
+        <volume_acquisition>
+            <voxelSize X="0.0061326" Y="0.0061326" Z="0.0061326"/>
+            <size X="2063" Y="1561" Z="2063"/>
+            <offset X="0.00" Y="185.342" Z="0.00"/>
+            <testSlice X="1031" Y="781" Z="1031"/>
+            <rotate X="0" Y="0" Z="0"/>
+        </volume_acquisition>
+        <volume>
+            <voxelSize X="0.0061326" Y="0.0061326" Z="0.0061326"/>
+            <size X="793" Y="1521" Z="793"/>
+            <offset X="-39.1798" Y="181.059" Z="-1.99285"/>
+            <testSlice X="372" Y="760" Z="396"/>
+            <rotate X="0" Y="0" Z="-13.2149"/>
+        </volume>
+        <profile images="1632" acquisition="Normal" turns="1">
+            <turnParam nbImages="1632" index="0">
+                <avr Imager="4"/>
+            </turnParam>
+        </profile>
+        <acquisitioninfo>
+            <xray current="86" voltage="80" type="X-Ray Source"/>
+            <geometry sod="36.0986" sdd="818.201"/>
+        </acquisitioninfo>
+        <correction offsetXStack="0" helicoilOffsetXCorrection="0" trapezoidX="0" trapezoidY="0" TrapXAndScaleWithOffsetX="0" scale="0" shearing="0" offsetXShift="0" tiltZ="0" offsetYShift="0" offsetX="-0.18" offsetY="0" offsetXCorrectionIndex="0" aspectRatio="0"/>
+        <ring_filter selectionEnabled="0" defectEnabled="0" falseDetectionLevel="0" replaceStatic="0" replaceNoisy="0" replaceDefect="0" kernel="5" ringEnabled="1"/>
+        <beam shift="0" spectrum="1 0 0 0 0 0 0" black_level="0"/>
+        <phase_filter manu_para="0.05" vector_auto="" enabled="0" type="MANU"/>
+        <spot vertical="-1.0625 -1 -0.875 -0.875 -0.8125 -0.875 -0.9375 -0.875 -0.6875 -0.6875 -0.6875 -0.75 -0.75 -0.8125 -0.8125 -0.75 -0.625 -0.5625 -0.5 -0.5 -0.4375 -0.3125 -0.25 -0.125 -0.0625 -0.0625 0 0 0.0625 0 0 0 0" scale="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" horizontal="7.3125 7.125 7 5.6875 4.5 3.125 2.25 1.4375 0.0625 -0.8125 -1.5 -2.125 -2.8125 -3.0625 -3.25 -3.375 -3.4375 -3.3125 -3.25 -2.9375 -2.375 -1.875 -1.375 -0.875 -0.375 -0.1875 -0.0625 0.0625 0.25 0.3125 0.3125 0.25 0"/>
+        <projections cropright="1" end="1631" unused="" cropleft="1" step="1" start="0"/>
+    </conebeam>
+</unireconstruction>
