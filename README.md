@@ -25,6 +25,9 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |---- generate_model.ipynb
 |       > A Jupyter notebook that generates the final model used.
 |
+|---- evaluate_model.ipynb.ipynb
+|       > A Jupyter notebook that evaluates the final model used.
+|
 |- other_models_code_and_files/
 |       > A folder that contains notebooks used to create the other notebooks 
 |       discussed in the report, and also raw image files used to train, 
@@ -88,8 +91,12 @@ To generate the model, open the notebook named "generate_model.ipynb". In the no
 
 ![image](https://user-images.githubusercontent.com/58084722/102497449-f2482680-4078-11eb-92c0-545be27361f9.png)
 
+### Step 3: Evaluate the model
 
-### Step 3: Predict vessels and generate analysis
+Once the model is generated, we need to be able to evaluate its performance. While developping the model this was often done directly in the generate_model file, but is also available through the evaluate_model.ipynb notebook. There you will be able to load a model, and evaluate its performance using different metrics.
+
+
+### Step 4: Predict vessels and generate analysis
 
 To generate the predictions using the generated model, first ensure the model's name is "model.pkl". Then you can open the command prompt from the folder (easiest method is to type cmd in the folder bar as seen in the image below).
 

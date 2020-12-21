@@ -254,19 +254,57 @@ def confusion(pred, test_labels, data_type):
     '''
     if data_type == "torch":
         pred_, lbls_ = torch.argmax(pred,dim=1).view(-1), test_labels.view(-1)
-        TP = torch.sum(torch.logical_and(pred_==1, lbls_==1)) / torch.sum(lbls_==1)
-        TN = torch.sum(torch.logical_and(pred_==0, lbls_==0)) / torch.sum(lbls_==0)
-        FP = torch.sum(torch.logical_and(pred_==1, lbls_==0)) / torch.sum(lbls_==0)
-        FN = torch.sum(torch.logical_and(pred_==0, lbls_==1)) / torch.sum(lbls_==1)
+        TPR = torch.sum(torch.logical_and(pred_==1, lbls_==1)) / torch.sum(lbls_==1)
+        TNR = torch.sum(torch.logical_and(pred_==0, lbls_==0)) / torch.sum(lbls_==0)
+        FPR = torch.sum(torch.logical_and(pred_==1, lbls_==0)) / torch.sum(lbls_==0)
+        FNR = torch.sum(torch.logical_and(pred_==0, lbls_==1)) / torch.sum(lbls_==1)
     elif data_type == "numpy":
-        TP = ((pred==1)*(test_labels==1)).sum() / (test_labels==1).sum()
-        TN = ((pred==0)*(test_labels==0)).sum() / (test_labels==0).sum()
-        FP = ((pred==1)*(test_labels==0)).sum() / (test_labels==0).sum()
-        FN = ((pred==0)*(test_labels==1)).sum() / (test_labels==1).sum()
+        TPR = ((pred==1)*(test_labels==1)).sum() / (test_labels==1).sum()
+        TNR = ((pred==0)*(test_labels==0)).sum() / (test_labels==0).sum()
+        FPR = ((pred==1)*(test_labels==0)).sum() / (test_labels==0).sum()
+        FNR = ((pred==0)*(test_labels==1)).sum() / (test_labels==1).sum()
     else:
         raise NameError("You must specify a type !!!")
 
-    return TP, TN, FP, FN
+    return TPR, TNR, FPR, FNR
+
+def precision_recall(y, y_pred):
+    '''
+    A method to calculate the presicion and recall of a prediction
+    Input:
+    :y: a 2D numpy real label mask
+    :y_pred: a 2D numpy predicted label mask
+    Output:
+    :precision: the fraction of predicted pixels that are relevant to the query
+    :recall: the fraction of the relevant pixels that are successfully predicted
+    '''
+    TP = ((y_pred==1)*(y==1)).sum() 
+    FP = ((y_pred==1)*(y==0)).sum()
+    FN = ((y_pred==0)*(y==1)).sum()
+
+    precision = TP / (TP+FP)
+    recall = TP / (TP+FN)
+
+    return precision, recall
+
+def f_score(y, y_pred):
+    '''
+    A method to calculate the F1-score of predictions
+    Input:
+    :y: a 2D numpy real label mask
+    :y_pred: a 2D numpy predicted label mask
+    Output:
+    :f_score: the fraction of predicted pixels that are relevant to the query
+    '''
+    TP = ((y_pred==1)*(y==1)).sum() 
+    FP = ((y_pred==1)*(y==0)).sum()
+    FN = ((y_pred==0)*(y==1)).sum()
+
+    precision = TP / (TP+FP)
+    recall = TP / (TP+FN)
+
+    return 2/(precision**-1 + recall**-1)
+
 
 def segment_dataset(imgs_, labels_, in_size=572, out_size=388, extend = True, augment=[False, False]):
     '''
