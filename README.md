@@ -38,15 +38,17 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |       from the images output by the lab scanner and on the lab EPFL drive.
 |
 |- labels/
-|       > A folder that contains Session 1 and 2 labels we generated with the 
-|       signal processing section of generate_labels.ipynb and which we used
-|       for training and testing.
-|       NB: the labels generated from CSV files are png and 4 channel to be
+|       > A folder that contains Session 1 and 2 labels that we generated with the 
+|       signal processing and CSV sections of generate_labels.ipynb. These were 
+|       used for training and testing.
+|       NB: the labels generated from CSV files are png and 4 channel, are made
 |       visible and have transparent backgrounds, to check them visually.
+|       Two functions in helpers.py : png_to_mask and mask_to_png are implemented
+|       to convert back and forth from arrays of 0 and 1 only, to rgba images.
 |       However the labels generated from Signal Processing are only one 
 |       channel, 1 where the label is embolism region, 0 where it is not.
-|       Therefore, they look black, but are therefore much lighter
-|       to load for training.
+|       Therefore, they look black, but are therefore much lighter and 
+|       straightforward to load for training.
 |
 |- csv_files/
 |       > A folder containing the CSV files used to select the images used for the labels.
@@ -126,11 +128,11 @@ It was then trained 500 epochs on all 160 session 1 images (see images at "image
 
 As a last step it was trained 50 epochs again on all 160 session 1 images, but this time using the Signal processing masks (see images at "images/Session1", labels at "labels/fromSignalProc/Session1" and the notebook "other_models_code_and_files/model training with parameter combination notebooks/th_u_net_GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4-retrain50AlonMasks.ipynb")
 
-A note on this model : available at "cs-project-finished/other_models_code_and_files/other/savedstatistics/GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4-retrain50epochsLr1e-5AlonMasks.csv" are some test measures for each of the Session 2 images (197 images). Some of the labels (Signal processing labels, as these statistics were collected at the very end after the three different training runs) are in fact very bad, either completely black or missing a lot of information. We did not remove them as it would have been a lengthy manual process, but this resulted in some of the statistics being obviously very wrong. The model made good predictions even for the images which were badly labeled, but the calculated statistics are very low/high because the reference mask was completely wrong. Therefore we can exclude a lot of the outliers from the 197 test points.
+A note on this model : available at "cs-project-finished/other_models_code_and_files/other/savedstatistics/GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4-retrain50epochsLr1e-5AlonMasks.csv" are some test measures for each of the Session 2 images (197 images). Some of the labels (Signal processing labels, as these statistics were collected at the very end after the three different training runs) are in fact very bad, either completely black or missing a lot of information. We did not remove them as it would have been a lengthy manual process, but this resulted in some of the statistics being obviously very wrong. The model made good predictions even for the images which were badly labeled, but the calculated statistics are very low/high because the reference mask was completely wrong. Therefore we can exclude some obvious outliers from the 197 test points.
 
-The saved statistics are True Positive (TP), True Negative (TN) and a custom surface prediction error. This last statistic is calculated in the helpers.py function compute_emb_surf_pred_error. See this file for more details, but in short : the goal is 0% (NB : it is directly in % numbers and to be multiplied by 100), and for example 200% means the prediction of the model is 200% bigger than the original label, and -200% means the original label is 200% bigger than the prediction. This gives a somewhat symetric measure of performance for the surface, as the lab was most interested in this surface of embolism.
+The saved statistics are True Positive (TP), True Negative (TN) and a custom surface prediction error. This last statistic is calculated in the helpers.py function compute_emb_surf_pred_error. See this file for more details, but in short : the goal is 0% (NB : it is directly in % numbers and should not be multiplied by 100), and for example 200% means the prediction of the model has predicted 200% more embolism pixels (equivalent to surface) than the original label, and -200% means the original label has 200% more embolism pixels than the prediction. This gives a somewhat symetric measure of performance for the surface, as the lab was most interested in this surface of embolism. It is of course not perfect, as False Positives might be compensative False Negatives, which is why those confusion metrics are also important.
 
-A simple look at the 197 test points reveals that four cases are complete outliers, with TP values that were not calculated as the reference label was probably all black (making for a 0 division), and we can see the embolism surface errors at 17149400%, 12851700%, 4539300% and 536900%. These we can easily exclude from our statistics. We must note however that they probably caused the rest of the model to be slightly worse, pulling it in the wrong directly while training. Also, these four erroneous data points show us that the TN is a metric to be taken with care, as it will most always be very high because most pictures are a majority of non embolism regions.
+A simple look at the 197 test points reveals that four cases are obvious outliers, with TP values that were not even calculated, as the reference label was probably all black (making for a 0 division), and we can see the embolism surface errors at 17'149'400%, 12'851'700%, 4'539'300% and 536'900%. These we can easily exclude from our statistics. We must note however that they probably caused the rest of the model to be slightly worse, pulling it in the wrong direction while training. Also, these four erroneous data points show us that the TN is a metric to be taken with care, as it will most always be very high because most pictures are a majority of non embolism regions.
 
 Alongside those 4 very obvious outliers, there are three values : 599%, 316% and -220%, that seem noticeably off most of the others. We would need to check what files those corresponded to and see why such big errors were producted. But we will also exclude those values from the next graph, as they do not seem to be an error due to the model itself. 
 
