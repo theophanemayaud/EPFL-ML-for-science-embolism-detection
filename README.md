@@ -38,7 +38,13 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |- labels/
 |       > A folder that contains Session 1 and 2 labels we generated with the 
 |       signal processing section of generate_labels.ipynb and which we used
-|       for training and testing
+|       for training and testing.
+|       NB: the labels generated from CSV files are png and 4 channel to be
+|       visible and have transparent backgrounds, to check them visually.
+|       However the labels generated from Signal Processing are only one 
+|       channel, 1 where the label is embolism region, 0 where it is not.
+|       Therefore, they look black, but are therefore much lighter
+|       to load for training.
 |
 |- csv_files/
 |       > A folder containing the CSV files used to select the images used for the labels.
@@ -61,18 +67,7 @@ First ensure you have the tools and packages listed under. Then follow the steps
 
 ### Requirements
 
-The folowing packages and tools were used and needed to run the repository:\
-[python](https://www.python.org/)==3.7\
-[ipython](https://ipython.org/)==7.19.0 \
-[glob2](https://pypi.org/project/glob2/)==0.7   \
-[pathlib2](https://pypi.org/project/pathlib2/)==2.3.5 \
-[opencv-python](https://opencv.org/)==4.4.0.46 \
-[numpy](https://numpy.org/)==1.18.5 \
-[scipy](https://www.scipy.org/)==1.5.4 \
-[torch](https://pytorch.org/)==1.7.1 \
-[matplotlib](https://matplotlib.org/)==3.3.2 \
-[pandas](https://pandas.pydata.org/)==1.1.4 \
-[seaborn](https://seaborn.pydata.org/)==0.11.0 
+The packages and versions required to make sure everything runs as intended are listed in the file requirements.txt
 
 ### Step 1: Generate label images from CSV files
 
