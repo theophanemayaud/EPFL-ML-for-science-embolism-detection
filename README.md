@@ -55,7 +55,7 @@ The architecture, as seen in the image below, encodes the image by repeatingly u
 |       |       > A file with the analyzed data from all the good samples
 |       |
 |       |---- emb_csv_files.zip
-|               > A zip file with the EMB.csv files of all plants
+|               > A zip file with the EMB.csv files of all plants (Session 1, 2 & 3)
 |
 |- models/
 |       |---- model.pickle
@@ -116,17 +116,28 @@ Furthermore, in "output", a .CSV file is generated called "analyzed_data.csv". T
 ![image](https://user-images.githubusercontent.com/58084722/102501217-79979900-407d-11eb-8222-f9a101f1ad5d.png)
 
 ## Details on models/model.pkl
-The model currently in models/model.pkl was trained multiple times, and for a very long time (using an Nvidia V100 on google cloud platform taking a total of approximately 20 hours, costing 100CHF. 
+The model currently in models/model.pkl was trained multiple times, and for a very long time (using an Nvidia V100 on google cloud platform taking a total of approximately 20 hours, costing more than 100CHF. 
 
 The model was trained using the Adam Optimizer, and Crossentropy loss.
 
-It was first trained 500 epochs on 6 handpicked diverse images that looked promising (see the images at "other_models_code_and_files/other/train_specific_sets/6img6lab3liv3dead3specyEach", the corresponding labels in "images/fromCSV/Session1" and the notebook where it was trained "other_models_code_and_files/model training with parameter combination notebooks/th_u_net_batch-500epoch6img3specy3dead3livingLr1e-4AdamCrossentr.ipynb").
+It was first trained 500 epochs on 6 handpicked diverse images that looked promising (see the images at "other_models_code_and_files/other/train_specific_sets/6img6lab3liv3dead3specyEach", the corresponding labels in "labels/fromCSV/Session1" and the notebook where it was trained "other_models_code_and_files/model training with parameter combination notebooks/th_u_net_batch-500epoch6img3specy3dead3livingLr1e-4AdamCrossentr.ipynb").
 
-It was then trained 500 epochs on all 160 session 1 images (see "images/fromSignalProc/Session1" and "other_models_code_and_files/model training with parameter combination notebooks/th_u_net_GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4.ipynb"). 
+It was then trained 500 epochs on all 160 session 1 images (see images at "images/Session1", labels at "labels/fromCSV/Session1" and the notebook at "other_models_code_and_files/model training with parameter combination notebooks/th_u_net_GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4.ipynb"). 
 
-This was all done using the 
+As a last step it was trained 50 epochs again on all 160 session 1 images, but this time using the Signal processing masks (see images at "images/Session1", labels at "labels/fromSignalProc/Session1" and the notebook "other_models_code_and_files/model training with parameter combination notebooks/th_u_net_GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4-retrain50AlonMasks.ipynb")
 
-As a last step
+A note on this model : available at "cs-project-finished/other_models_code_and_files/other/savedstatistics/GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4-retrain50epochsLr1e-5AlonMasks.csv" are some test measures for each of the Session 2 images (197 images). Some of the labels (Signal processing labels, as these statistics were collected at the very end after the three different training runs) are in fact very bad, either completely black or missing a lot of information. We did not remove them as it would have been a lengthy manual process, but this resulted in some of the statistics being obviously very wrong. The model made good predictions even for the images which were badly labeled, but the calculated statistics are very low/high because the reference mask was completely wrong. Therefore we can exclude a lot of the outliers from the 197 test points.
+
+The saved statistics are True Positive (TP), True Negative (TN) and a custom surface prediction error. This last statistic is calculated in the helpers.py function compute_emb_surf_pred_error. See this file for more details, but in short : the goal is 0% (NB : it is directly in % numbers and to be multiplied by 100), and for example 200% means the prediction of the model is 200% bigger than the original label, and -200% means the original label is 200% bigger than the prediction. This gives a somewhat symetric measure of performance for the surface, as the lab was most interested in this surface of embolism.
+
+A simple look at the 197 test points reveals that four cases are complete outliers, with TP values that were not calculated as the reference label was probably all black (making for a 0 division), and we can see the embolism surface errors at 17149400%, 12851700%, 4539300% and 536900%. These we can easily exclude from our statistics. We must note however that they probably caused the rest of the model to be slightly worse, pulling it in the wrong directly while training. Also, these four erroneous data points show us that the TN is a metric to be taken with care, as it will most always be very high because most pictures are a majority of non embolism regions.
+
+Alongside those 4 very obvious outliers, there are three values : 599%, 316% and -220%, that seem noticeably off most of the others. We would need to check what files those corresponded to and see why such big errors were producted. But we will also exclude those values from the next graph, as they do not seem to be an error due to the model itself. 
+
+Here is the final distribution, for the 190 Session 2 (7 outliers excluded) :
+
+![Model Error](final_model_sur_err_hist.png)
+
 
 ## References
 <a id="1">[1]</a> O. Ronneberger, P. Fischer, & T. Brox, U-Net: Convolutional Networks for Biomedical Image Segmentation, arXiv, 2015
