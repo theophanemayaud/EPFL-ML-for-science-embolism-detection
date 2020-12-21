@@ -128,6 +128,16 @@ It was then trained 500 epochs on all 160 session 1 images (see images at "image
 
 As a last step it was trained 50 epochs again on all 160 session 1 images, but this time using the Signal processing masks (see images at "images/Session1", labels at "labels/fromSignalProc/Session1" and the notebook "other_models_code_and_files/model training with parameter combination notebooks/th_u_net_GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4-retrain50AlonMasks.ipynb")
 
+It was saved with both the model state dictionnary, and the optimizer state dictionnary, for resuming training from this model, load parameters like the following :
+
+```python
+model = UNet()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+checkpoint = torch.load('models/model.pkl')
+model.load_state_dict(checkpoint['model_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+```
+
 A note on this model : available at "cs-project-finished/other_models_code_and_files/other/savedstatistics/GCP-batch_500epochAllSession1Img_Adam_CrossEntr_Lr1e-4-retrain50epochsLr1e-5AlonMasks.csv" are some test measures for each of the Session 2 images (197 images). Some of the labels (Signal processing labels, as these statistics were collected at the very end after the three different training runs) are in fact very bad, either completely black or missing a lot of information. We did not remove them as it would have been a lengthy manual process, but this resulted in some of the statistics being obviously very wrong. The model made good predictions even for the images which were badly labeled, but the calculated statistics are very low/high because the reference mask was completely wrong. Therefore we can exclude some obvious outliers from the 197 test points.
 
 The saved statistics are True Positive (TP), True Negative (TN) and a custom surface prediction error. This last statistic is calculated in the helpers.py function compute_emb_surf_pred_error. See this file for more details, but in short : the goal is 0% (NB : it is directly in % numbers and should not be multiplied by 100), and for example 200% means the prediction of the model has predicted 200% more embolism pixels (equivalent to surface) than the original label, and -200% means the original label has 200% more embolism pixels than the prediction. This gives a somewhat symetric measure of performance for the surface, as the lab was most interested in this surface of embolism. It is of course not perfect, as False Positives might be compensative False Negatives, which is why those confusion metrics are also important.
